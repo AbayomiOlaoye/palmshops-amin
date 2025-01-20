@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');
+
+:root {
+  --green: #80b838;
+  --light: #b3e870;
+  --deep: #395219;
+  --dark: #0a192f;
+  --white: rgb(240, 244, 248);
+  --gray: #64676a;
+  --divider: #dddddd;
+  --highlight: #f2f7de;
+  --shadow: #f8f9fd;
+  --nav: #212529;
+  --list: #272525;
+
+  --title: 'Nunito Sans', sans-serif;
+  --text: 'Nunito', sans-serif;
+
+  line-height: 1.5;
+  font-weight: 400;
+  background-color: #fff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5, 
+h6 {
+  font-family: var(--title);
+  font-weight: 500;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--title);
+  color: var(--nav);
+}
+
+.opacity-bg {
+  background-color: rgba(240, 244, 248, 0.2);
+  border-radius: 20px;
+}
+
+button {
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.login-bg {
+  background-image: url('./assets/bg_admin.png');
+  background-repeat: no-repeat;
+  background-position: cover;
+}
+
+.nav-link:hover .bar-nav {
+  background-color: #5D9D53;
+}
+
+.LegendList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  list-style: none;
+}
+
+.LegendList li {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.BulletLabel {
+  display: flex;
+  align-items: center;
+}
+
+.CirecleBullet {
+  border-radius: 50%;
+}
+
+.BulletLabelText {
+  margin-left: 10px;
+}
+
+.CenteredLabelValue {
+  font-size: 36px;
+  font-weight: 600;
+  fill: #395219;
+}
