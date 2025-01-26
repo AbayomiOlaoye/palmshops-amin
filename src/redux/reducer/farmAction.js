@@ -53,7 +53,6 @@ export const fetchAllFarmStock = createAsyncThunk(
   'farm/fetchAllStock', async (_, { rejectWithValue }) => {
   try {
     const { data } = await auth.get('/farm/stock/all');
-    console.log(data);
     return data;
   } catch (error) {
     if (error.response.status === 400) {

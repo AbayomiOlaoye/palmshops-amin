@@ -54,7 +54,6 @@ export const fetchAllHarvests = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await auth.get('/harvest/stock/all');
-      console.log(data);
       return data;
     } catch (error) {
       if (error.response.status === 400) {

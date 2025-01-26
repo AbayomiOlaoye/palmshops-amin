@@ -7,7 +7,6 @@ import { MdArrowBack } from "react-icons/md";
 import Top from "../Dashboard/Top";
 import  { fetchAllHarvests, deleteHarvestStock } from '../../redux/reducer/harvestAction';
 import { fetchAllFarmStock, deleteFarmStock } from '../../redux/reducer/farmAction';
-// import { auth } from '../../apiCall';
 
 const OverviewTrack = () => {
   const dispatch = useDispatch();
