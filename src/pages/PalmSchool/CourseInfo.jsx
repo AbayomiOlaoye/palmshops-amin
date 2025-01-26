@@ -8,17 +8,17 @@ import { deleteCourse } from '../../redux/reducer/courseActions';
 const CourseInfo = () => {
   const { courses } = useSelector((state) => state.courses);
   console.log(courses);
-  const { users } = useSelector((state) => state?.auth);
+  // const { users } = useSelector((state) => state?.auth);
   const [courseData, setCourseData] = useState(courses || []);
   const { id } = useParams();
   const dispatch = useDispatch();
 
   const course = courses.find((record) => record._id === id);
-  const getUserName = (userId) => {
-    const user = users.find((record) => record._id === userId);
-    // console.log(users);
-    return user?.name;
-  };
+  // const getUserName = (userId) => {
+  //   const user = users.find((record) => record._id === userId);
+  //   // console.log(users);
+  //   return user?.name;
+  // };
 
   if (!course) {
     return <div className="text-center text-red-500">Course information not available</div>;
@@ -100,7 +100,7 @@ const CourseInfo = () => {
               </div>
               <div className="info flex gap-10">
                 <span className="w-[180px] font-bold">Rating:</span>
-                <span className="capitalize">{course?.rate}</span>
+                <span className="capitalize">{course?.rating}</span>
               </div>
               <div className="info flex gap-10">
                 <span className="w-[180px] font-bold block">Course Description:</span>
@@ -109,7 +109,7 @@ const CourseInfo = () => {
             </article>
             <article className="work flex flex-col gap-1">
               <h4 className="text-center p-2 font-bold">Course Avatar</h4>
-              <img src={course?.image} alt="Course Avatar" className="w-full rounded-lg h-[200px] object-cover" />
+              <img src={course?.image} alt="Course Avatar" className="w-full rounded-lg h-[300px] object-cover" />
             </article>
           </section>
           <section className="userInfo mt-5 flex flex-col gap-8">
@@ -153,7 +153,7 @@ const CourseInfo = () => {
                         <tbody>
                           {module.assessments.map((assessment, assessmentIndex) =>
                             assessment.questions.map((question, questionIndex) => (
-                              <tr key={`${module.id}-${assessmentIndex}-${questionIndex}`} className="text-left">
+                              <tr key={`${module._id}-${assessmentIndex}-${questionIndex}`} className="text-left">
                                 <td className="border border-gray-300 px-4 py-2 text-center">
                                   {questionIndex + 1}
                                 </td>
@@ -200,7 +200,7 @@ const CourseInfo = () => {
                   {course?.feedback.map((review, index) => (
                     <tr key={review._id + 1} className="text-left">
                       <td className="border border-gray-300 px-4 py-2 text-center">{index + 1}</td>
-                      <td className="border border-gray-300 px-4 py-2">{getUserName(review.userId)}</td>
+                      <td className="border border-gray-300 px-4 py-2">{review.userId.name}</td>
                       <td className="border border-gray-300 px-4 py-2">{review.comment}</td>
                       <td className="border border-gray-300 px-4 py-2">{review.rating}</td>
                       <td className="border border-gray-300 px-4 py-2">{getDate(review.date)}</td>

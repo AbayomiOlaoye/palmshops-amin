@@ -1,5 +1,3 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable import/no-extraneous-dependencies */
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import {
   persistStore,
@@ -13,8 +11,8 @@ import {
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import authReducer from './features/authSlice';
-// import farmReducer from './features/farmSlice';
-// import harvestedReducer from './features/harvestSlice';
+import farmReducer from './features/farmSlice';
+import harvestedReducer from './features/harvestSlice';
 // import notifReducer from './features/notifSlice';
 // import productReducer from './features/productSlice';
 // import cartReducer from './features/cartSlice';
@@ -31,8 +29,8 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   auth: authReducer,
-  // farm: farmReducer,
-  // harvest: harvestedReducer,
+  farm: farmReducer,
+  harvest: harvestedReducer,
   // notif: notifReducer,
   // product: productReducer,
   // cart: cartReducer,

@@ -9,8 +9,9 @@ import Login from "../pages/Auth/Login";
 import Overview from "../pages/PalmSchool/Overview";
 import CourseInfo from "../pages/PalmSchool/CourseInfo";
 import UpdateCourse from "../pages/PalmSchool/UpdateCourse";
-// import AllSales from "../pages/Sales/AllSales";
-// import SalesDetails from "../pages/Sales/SalesDetails";
+import CreateCourse from "../pages/PalmSchool/New";
+import OverviewTrack from "../pages/PalmTrack/Overview";
+import StockInfo from "../pages/PalmTrack/StockInfo";
 // import NewSales from "../pages/Sales/NewSales";
 // import UpdatePayroll from "../pages/HR/UpdatePayroll";
 // import ReqList from "../pages/Requisition/ReqList";
@@ -55,7 +56,9 @@ const routes = {
     { path: "/courses", component: Overview },
     { path: "/courses/info/:id", component: CourseInfo },
     { path: "/courses/edit/:id", component: UpdateCourse },
-  //   { path: "/production/new", component: NewRecord },
+    { path: "/courses/new", component: CreateCourse },
+    { path: "/track", component: OverviewTrack },
+    { path: "/track/view/:id", component: StockInfo },
   //   { path: "/production/product/new", component: NewProduct },
   //   { path: "/sales", component: AllSales },
   //   { path: "/sales/edit/:id", component: SalesDetails },

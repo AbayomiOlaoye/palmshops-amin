@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { toast } from 'react-toastify';
 import { auth } from '../../apiCall';
@@ -50,7 +49,27 @@ export const updateFarmStock = createAsyncThunk(
   },
 );
 
-export const getFarmStock = createAsyncThunk('farm/getStock', async (_, { rejectWithValue }) => {
+export const fetchAllFarmStock = createAsyncThunk(
+  'farm/fetchAllStock', async (_, { rejectWithValue }) => {
+  try {
+    const { data } = await auth.get('/farm/stock/all');
+    console.log(data);
+    return data;
+  } catch (error) {
+    if (error.response.status === 400) {
+      toast.error(error.response.data.error, options);
+    }
+    if (error.response && error.message) {
+      toast.error(error.response.data.error, options);
+      return rejectWithValue(error.response);
+    }
+    toast.error(error.response.data.error, options);
+    return rejectWithValue(error.response.data.error);
+  }
+});
+
+export const getFarmStock = createAsyncThunk(
+  'farm/getStock', async (_, { rejectWithValue }) => {
   try {
     const { data } = await auth.get('/farm/stock');
     return data;

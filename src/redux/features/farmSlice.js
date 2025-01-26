@@ -1,8 +1,6 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable import/no-cycle */
 import { createSlice } from '@reduxjs/toolkit';
 import {
-  addFarmStock, deleteFarmStock, updateFarmStock, getFarmStock,
+  addFarmStock, deleteFarmStock, updateFarmStock, getFarmStock, fetchAllFarmStock,
 } from '../reducer/farmAction';
 
 const initialState = {
@@ -40,6 +38,19 @@ const farmSlice = createSlice({
         state.success = true;
       })
       .addCase(updateFarmStock.rejected, (state) => {
+        state.loading = false;
+      })
+
+      // Fetch All Farm Stock
+      .addCase(fetchAllFarmStock.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAllFarmStock.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.farms = payload;
+        state.success = true;
+      })
+      .addCase(fetchAllFarmStock.rejected, (state) => {
         state.loading = false;
       })
 
