@@ -84,15 +84,6 @@ const Order = () => {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
-  const isValidUrl = (url) => {
-    try {
-      new URL(url);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
-
   return (
     <motion.section className="max-w-full"
       initial={{ opacity: 0, x: '-20%' }}

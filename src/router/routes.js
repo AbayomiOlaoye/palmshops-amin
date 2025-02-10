@@ -15,6 +15,7 @@ import OverviewTrack from "../pages/PalmTrack/Overview";
 import StockInfo from "../pages/PalmTrack/StockInfo";
 import Orders from "../pages/PalmStore/orders/Orders";
 import Order from "../pages/PalmStore/orders/Order";
+import Requests from "../pages/PalmStore/orders/Request";
 
 const routes = {
   unauthenticated: [
@@ -32,6 +33,7 @@ const routes = {
     { path: "/subscription", component: SubscriptionList },
     { path: "/users", component: AllUsers },
     { path: "/users/:id", component: User },
+    { path: "/products/requests", component: Requests },
   //   { path: "/hr/payroll", component: Payroll },
   //   { path: "/hr/payroll/edit/:id", component: UpdatePayroll },
   //   { path: "/hr/payroll/generate", component: NewPayroll },
