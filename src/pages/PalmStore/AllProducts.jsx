@@ -4,81 +4,107 @@ import { useSelector, useDispatch } from 'react-redux';
 import { motion } from "framer-motion";
 import { DataGrid } from '@mui/x-data-grid';
 import { MdArrowBack } from "react-icons/md";
-import { getEmployees } from "../../redux/reducer/employeeAction";
 import Top from "../Dashboard/Top";
-// import { auth } from '../../apiCall';
-import { deleteEmployee } from '../../redux/reducer/employeeAction';
-import { fetchPayrolls } from '../../redux/reducer/payrollAction';
+import { auth } from '../../apiCall';
+import { deleteProduct, fetchAllproductStock } from '../../redux/reducer/productAction';
 
-const AllStaff = () => {
-  const { employees } = useSelector((state) => state.employee);
-  const userRole = useSelector((state) => state.auth.user.role);
-  const staffWithSerial = employees && employees .length > 0 
-  ? employees.map((staff, index) => {
-    return { ...staff, id: index + 1 };
-  })
-  : [];
-
-
-  const [isEmployeeData, setIsEmployeeData] = useState(staffWithSerial);
+const AllProducts = () => {
+  const { products } = useSelector((state) => state.product);
+  const [stats, setStats] = useState([]);
+  const [productWithSalesData, setProductWithSalesData] = useState([]);
   const dispatch = useDispatch();
 
-  const handleDelete = (id) => {
-    dispatch(deleteEmployee(id));
-    setIsEmployeeData(isEmployeeData.filter((item) => item.employeeId !== id));
-  };
+  useEffect(() => {
+    dispatch(fetchAllproductStock());
+  }, [dispatch]);
 
   useEffect(() => {
-    dispatch(getEmployees());
-    dispatch(fetchPayrolls());
-  }, [dispatch]);
+    const fetchStats = async () => {
+      const { data } = await auth.get('/orders/stats');
+      setStats(data.data);
+    }
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
+    if (products && products.length > 0 && stats && stats.length > 0) {
+      const productWithSerialAndSales = products.map((product, index) => {
+        const matchingStat = stats.find(stat => stat.productId === product.productId);
+
+        return {
+          ...product,
+          id: index + 1,
+          totalOrders: matchingStat ? matchingStat.totalOrders : 0,
+          totalUnitsSold: matchingStat ? matchingStat.totalUnitsSold : 0
+        };
+      });
+      setProductWithSalesData(productWithSerialAndSales);
+    }
+  }, [products, stats]);
+
+  const handleDelete = (id) => {
+    dispatch(deleteProduct(id));
+    setProductWithSalesData(productWithSalesData.filter((item) => item._id !== id));
+  };
 
   const columns = [
     {field: "id", headerName: "S/N", width: 50},
     {
-      field: "name",
-      headerName: "Staff Name",
+      field: "title",
+      headerName: "Product Name",
       width: 200,
       renderCell: (params) => {
         return (
           <div className="userListUser flex items-center gap-2">
-            {params.row?.image && <img className="userListImg rounded-full h-8 w-8" src={params.row?.image} alt="staff headshot" />}
-            {params.row.firstName} {params.row.lastName}
+            {params.row?.title}
           </div>
         );
       },
     },
-    { field: "employeeId", headerName: "Staff ID", width: 90, height: 30, },
+    { field: "productId", headerName: "Product ID", width: 90, height: 30, },
     {
-      field: "jobTitle",
-      headerName: "Job Title",
+      field: "price",
+      headerName: "Price/Unit",
       width: 150,
+      renderCell: (params) => {
+        return (
+          <div className="userListUser flex items-center gap-2">
+            {`₦${params.row?.price.toLocaleString()}`}
+          </div>
+        );
+      }
     },
+    { field: "totalOrders", headerName: "Total Orders", width: 150 },
+    { field: "totalUnitsSold", headerName: "Total Units Sold", width: 150 },
     {
-      field: "department",
-      headerName: "Department",
-      width: 100,
+      field: "inStock",
+      headerName: "In Stock",
+      width: 80,
+      renderCell: (params) => {
+        return (
+          <div className="userListUser flex items-center h-30 gap-2">
+            <span className={`capitalize px-2 rounded-md h-[28px] mt-1 flex items-center text-white ${params.row?.inStock ? 'bg-green-600' : 'bg-red-600'}`}>{params.row?.inStock ? 'In Stock' : 'Out of Stock'}</span>
+          </div>
+        );
+      }
     },
-    { field: "phone", headerName: "Phone", width: 150 },
     {
       field: "action",
       headerName: "Action",
       width: 150,
       renderCell: (params) => {
         return (
-          <div className='flex gap-4 items-center h-30'>
-            <Link to={"/hr/staff/edit/" + params.row.employeeId} className="bg-ek-green text-white px-2 h-[28px] hover:bg-opacity-75 transition-all flex items-center rounded">
-              <button className="userListEdit">Edit</button>
+          <div className='flex gap-4 items-center h-30 justify-center'>
+            <Link to={"/products/edit/" + params.row?._id} className="bg-ek-green mt-1 text-white px-2 h-[28px] hover:bg-opacity-75 transition-all flex items-center rounded">
+              <button className="userListEdit mt-1">Edit</button>
             </Link>
-            {userRole === 'admin' && (
-              <button
-                type="button"
-                className="userListDelete bg-ek-gray px-2 h-[28px] flex items-center self-center hover:bg-opacity-75 transition-all text-white rounded"
-                onClick={() => handleDelete(params.row.employeeId)}
-              >
-                Delete
-            </button>
-            )}
+            <button
+              type="button"
+              className="userListDelete bg-ek-gray px-2 mt-1 h-[28px] flex items-center self-center hover:bg-opacity-75 transition-all text-white rounded"
+              onClick={() => handleDelete(params.row?._id)}
+            >
+              Delete
+          </button>
           </div>
         );
       },
@@ -97,7 +123,7 @@ const AllStaff = () => {
       transition={{ delay: 0.1 }}
       className="max-w-full"
     >
-      <Top title="HR" text="Manage Staff Information" />
+      <Top title="Palm Store" text="Manage Staff Information" />
       <section className="">
         <div className="action-nav flex justify-between items-center">
           <motion.article
@@ -107,24 +133,26 @@ const AllStaff = () => {
             className="back flex items-center gap-4 text-2xl"
           >
             <MdArrowBack className="cursor-pointer" onClick={handleGoBack} />
-            <span className="font-medium">Basic Staff Information</span>
+            <span className="font-medium">Overview of Products</span>
           </motion.article>
           <article className="other-actions flex gap-3">
-          <Link to="/hr/payroll" className="border-2 rounded-lg px-3 py-2 hover:bg-ek-deep hover:text-ek-green">Payroll</Link>
-          <Link to="/hr/staff/new" className="border-2 rounded-lg px-3 py-2 hover:bg-ek-deep hover:text-ek-green">Add New Staff</Link>
+            <Link to="/products/orders" className="border-2 rounded-lg px-3 py-2 hover:bg-ek-green focus:bg-ek-light focus:text-ek-nav hover:text-ek-white">Manage Orders</Link>
+            <Link to="/products/requests" className="border-2 focus:bg-ek-light focus:text-ek-nav rounded-lg px-3 py-2 hover:bg-ek-green hover:text-ek-white">Manage Requests</Link>
+            <Link to="/products/sales-lease-requests" className="border-2 focus:bg-ek-light focus:text-ek-nav rounded-lg px-3 py-2 hover:bg-ek-green hover:text-ek-white">Sell/Lease Orders</Link>
+            <Link to="/products/new" className="border-2 rounded-lg px-3 py-2 focus:bg-ek-light focus:text-ek-nav hover:bg-ek-green hover:text-ek-white">New Product</Link>
           </article>
         </div>
         <article className="staff-list min-h-[80vh] mt-3 rounded-xl shadow-lg bg-white py-10 p-8">
-        <DataGrid
-          rows={isEmployeeData}
-          columns={columns}
-          pageSize={10}
-          rowHeight={38}
-        />
+          <DataGrid
+            rows={productWithSalesData}
+            columns={columns}
+            pageSize={10}
+            rowHeight={38}
+          />
         </article>
       </section>
     </motion.div>
   )
 }
 
-export default AllStaff;
+export default AllProducts;

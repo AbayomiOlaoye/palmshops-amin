@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import {
   createOrder,
   createOrderSuccess,
@@ -29,11 +28,14 @@ export const createOrderReq = async (dispatch, carts, address, total, payment, d
   }
 };
 
-export const updateOrderReq = async (dispatch, orderNumber, paymentDetails) => {
+export const updateOrderReq = async (dispatch, orderNumber, values) => {
   const encodedOrderNumber = encodeURIComponent(orderNumber);
   dispatch(updateOrder());
   try {
-    const res = await auth.put(`/orders/${encodedOrderNumber}`, { paymentDetails: JSON.parse(paymentDetails) });
+    const res = await auth.put(`/orders/${encodedOrderNumber}`, {
+      status: values.status,
+      deliveryStatus: values.deliveryStatus,
+    });
     dispatch(updateOrderSuccess(res.data));
   } catch (err) {
     dispatch(updateOrderFail());

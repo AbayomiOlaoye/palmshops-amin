@@ -21,7 +21,7 @@ const navLinks = [
   { to: '/products', label: 'Palm Store', icon: <FaMoneyBills className="" /> },
   { to: '/palm-vest', label: 'Palm Vest', icon: <FaRectangleList className="" /> },
   { to: '/users', label: 'User Mgt', icon: <MdLocalGroceryStore className="" /> },
-  { to: '/feedback', label: 'Feedback', icon: <GiBuyCard className="" /> },
+  { to: '/subscription', label: 'Subscription List', icon: <GiBuyCard className="" /> },
 ];
 
 const AdminLayout = () => (

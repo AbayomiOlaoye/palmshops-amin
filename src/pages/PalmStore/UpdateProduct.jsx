@@ -1,6 +1,6 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+// import { toast } from 'react-toastify';
 import { MdArrowBack } from "react-icons/md";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux';
 import { motion } from "framer-motion";
 import { ImSpinner3 } from "react-icons/im";
 import { useDropzone } from 'react-dropzone';
-import { updateEmployee, getEmployees } from '../../redux/reducer/employeeAction';
+import { updateproductStock, deleteProduct } from "../../redux/reducer/productAction";
 import { auth } from '../../apiCall';
 import Top from "../Dashboard/Top";
 
@@ -19,65 +19,46 @@ const UpdateStaff = () => {
   const [badImg, setBadImg] = useState({ status: false, message: '' });
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleGoBack = () => {
     window.history.back();
   }
 
   useEffect(() => {
-    auth.get(`/${id}`)
-      .then(({ data }) => {
-        setStaffData(data);
-        formik.setValues(data);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        toast.error(err.response.data.error);
-      });
+    const fetchStaff = async () => {
+    const {data} = await auth.get(`/products/${id}`)
+      setStaffData(data);
+      formik.setValues(data);
+      setIsLoading(false);
+    };
+    fetchStaff();
   }, [id]);
 
   const validationSchema = Yup.object({
-    firstName: Yup.string().required('First Name is required'),
-    lastName: Yup.string().required('Last Name is required'),
-    email: Yup.string().email('Invalid email format').required('Email is required'),
-    phone: Yup.string().required('Phone number is required'),
-    address: Yup.string().required('Address is required'),
-    next_of_kin: Yup.string().required('Next of kin is required'),
-    next_of_kin_phone: Yup.string().required('Next of kin phone is required'),
-    bankDetails: Yup.object({
-      bankName: Yup.string().required('Bank name is required'),
-      accountNumber: Yup.string().required('Account number is required'),
-    }),
-    department: Yup.string().required('Department is required'),
-    salary: Yup.number().required('Salary is required').positive('Must be a positive number'),
-    jobTitle: Yup.string().required('Job title is required'),
-    image: Yup.string().required('Image is required'),
+    title: Yup.string().required('Product name is required'),
+    description: Yup.string().required('Description is required'),
+    inStock: Yup.boolean().required('In stock is required'),
+    metric: Yup.string().required('Unit is required'),
+    price: Yup.number().required('Price is required'),
+    rating: Yup.number().required('Rating is required'),
+    productImage: Yup.string().required('Image is required'),
   });
 
   const formik = useFormik({
     initialValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      address: '',
-      next_of_kin: '',
-      next_of_kin_phone: '',
-      department: '',
-      jobTitle: '',
-      salary: '',
-      bankDetails: {
-        bankName: '',
-        accountNumber: '',
-      },
-      image: '',
+      title: '',
+      description: '',
+      inStock: true,
+      metric: '',
+      price: '',
+      rating: '',
+      productImage: '',
     },
     validationSchema,
     onSubmit: async (values) => {
       setIsLoading(true);
-      dispatch(updateEmployee(values))
-      dispatch(getEmployees())
+      dispatch(updateproductStock(values))
         .then(() => {
           setIsLoading(false);
         })
@@ -88,6 +69,11 @@ const UpdateStaff = () => {
     validateOnChange: false,
     validateOnBlur: true,
   });
+
+  const handleDelete = (id) => {
+    dispatch(deleteProduct(id));
+    navigate('/products');
+  };
 
   useEffect(() => {
     if (formik.errors.length > 0 || badImg.status) {
@@ -117,14 +103,14 @@ const UpdateStaff = () => {
       'image/jpeg': [],
       'image/png': [],
     },
-    maxSize: 1024000,
+    maxSize: 3072000,
   });
 
   useEffect(() => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       acceptedFiles.map(async (file) => {
         const base64Image = await convertToBase64(file);
-        formik.setFieldValue('image', base64Image);
+        formik.setFieldValue('productImage', base64Image);
       });
     }
 
@@ -140,17 +126,6 @@ const UpdateStaff = () => {
       });
     }
   }, [acceptedFiles, fileRejections]);
-
-  const excludedKeys = ['bankDetails', 'createdAt', 'image', 'updatedAt', '__v', '_id', 'employeeId', 'relationship', 'bankName', 'accountNumber'];
-
-  const getDate = (order) => {
-    const date = new Date(order);
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return `${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()}`;
-  };
 
   return (
     <motion.section className="max-w-full"
@@ -169,83 +144,59 @@ const UpdateStaff = () => {
             className="back flex items-center gap-4 text-2xl"
           >
             <MdArrowBack className="cursor-pointer" onClick={handleGoBack} />
-            <span className="font-medium">Edit Staff Data</span>
+            <span className="font-medium">Product Information</span>
           </motion.article>
           <article className="other-actions flex gap-3">
-            <Link to="/hr/payroll" className="border-2 rounded-lg px-3 py-1 hover:bg-ek-deep hover:text-ek-green">Payroll</Link>
-            <Link to="/hr/staff/new" className="border-2 rounded-lg px-3 py-1 hover:bg-ek-deep hover:text-ek-green">Add New Staff</Link>
+            <button
+              type="button"
+              onClick={() => handleDelete(staffData?._id)}
+              className="bg-red-500 mt-1 text-white p-2 px-3 hover:bg-opacity-75 transition-all flex items-center rounded"
+            >
+              Delete
+            </button>
           </article>
         </div>
-        <div className="userContainer grid lg:grid-cols-2 w-full mt-3 rounded-xl shadow-lg bg-white py-10 p-8">
-          <div className="userShow border-r pr-10 mr-10">
+        <div className="userContainer grid lg:grid-cols-1 w-full mt-3 rounded-xl shadow-lg bg-white py-10 p-8">
+          <div className="userShow border-b pb-10 mb-10">
             {isLoading ? (
               <div>Loading...</div>
             ) : (
-              <div className="userInfo flex flex-col gap-4">
+              <div className="userInfo flex gap-4">
                 <div className="work flex flex-col gap-1">
-                  <div className="info flex max-w-[30%] gap-24 mb-4">
-                    {staffData.image && (
-                      <img src={staffData.image} alt="Our staff"  />
+                  <div className="info flex gap-24">
+                    <span className="w-[150px] font-bold">Product Name:</span>
+                    <span className="capitalize">{staffData?.title}</span>
+                  </div>
+                  <div className="info flex gap-24">
+                    <span className="w-[150px] font-bold">Product ID:</span>
+                    <span className="capitalize">{staffData?.productId}</span>
+                  </div>
+                  <div className="info flex gap-24">
+                    <span className="w-[150px] font-bold">Price:</span>
+                    <span>{`₦${staffData?.price.toLocaleString()}`}</span>
+                  </div>
+                  <div className="info flex gap-24">
+                    <span className="w-[150px] font-bold">Unit:</span>
+                    <span className="capitalize">{staffData?.metric}</span>
+                  </div>
+                  <div className="info flex gap-24">
+                    <span className="w-[150px] font-bold">Rating:</span>
+                    <span className="capitalize">{staffData?.rating}</span>
+                  </div>
+                  <div className="info flex gap-24">
+                    <span className="w-[150px] font-bold">In Stock:</span>
+                    <span className="capitalize">{staffData?.inStock === true ? 'In Stock' : 'Out of Stock' }</span>
+                  </div>
+                  <div className="info flex gap-24">
+                    <span className="w-[150px] font-bold">Description:</span>
+                    <span className="capitalize">{staffData?.description}</span>
+                  </div>
+                </div>
+                <div className="work flex flex-col gap-1">
+                  <div className="info flex max-w-[80%] gap-24 mb-4">
+                    {staffData?.productImage && (
+                      <img src={staffData?.productImage} alt="Our staff"  />
                     )}
-                  </div>
-                  <h3 className="font-bold">Work Details</h3>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Job Title:</span>
-                    <span className="capitalize">{staffData.jobTitle ? staffData.jobTitle : 'Nil'}</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Department:</span>
-                    <span className="capitalize">{staffData.department ? staffData.department : 'Nil' }</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Starting Date:</span>
-                    <span>{getDate(staffData.createdAt)}</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Staff ID:</span>
-                    <span className="capitalize">{`#${staffData.employeeId}`}</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Salary:</span>
-                    <span className="capitalize">{staffData.salary ? `₦${staffData.salary.toLocaleString()}` : 'Nil'}</span>
-                  </div>
-                </div>
-                <div className="work flex flex-col gap-1">
-                  <h3 className="font-bold">Personal Details</h3>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Name:</span>
-                    <span className="capitalize">{`${staffData.firstName} ${staffData.lastName}`}</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Address:</span>
-                    <span className="capitalize">{staffData.address ? staffData.address : 'Nil' }</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Phone Number:</span>
-                    <span className="capitalize">{staffData.phone ? staffData.phone : 'Nil' }</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Next of Kin:</span>
-                    <span className="capitalize">{staffData.next_of_kin ? staffData.next_of_kin : 'Nil' }</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Next of Kin Phone:</span>
-                    <span className="capitalize">{staffData.next_of_kin_phone ? staffData.next_of_kin_phone : 'Nil' }</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Email:</span>
-                    <span className="capitalize">{staffData.email ? staffData.email : 'Nil' }</span>
-                  </div>
-                </div>
-                <div className="work flex flex-col gap-1">
-                  <h3 className="font-bold">Bank Details</h3>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Bank Name:</span>
-                    <span className="capitalize">{staffData.bankDetails?.bankName ? staffData.bankDetails?.bankName : 'Nil' }</span>
-                  </div>
-                  <div className="info flex gap-24">
-                    <span className="w-[150px]">Account Number:</span>
-                    <span className="capitalize">{staffData.bankDetails?.accountNumber ? staffData.bankDetails?.accountNumber : 'Nil' }</span>
                   </div>
                 </div>
               </div>
@@ -255,71 +206,98 @@ const UpdateStaff = () => {
             <h4 className="userUpdateTitle text-ek-deep font-extrabold">Edit</h4>
             <form onSubmit={formik.handleSubmit} className="userUpdateForm flex flex-col gap-4">
               <div className="userUpdateLeft grid grid-cols-2 gap-2 gap-x-8 mt-4">
-              {Object.keys(formik.initialValues)
-                .filter((key) => !excludedKeys.includes(key))
-                .map((key) => {
-                  if (typeof formik.initialValues[key] === 'object' && formik.initialValues[key] !== null) {
-                    return Object.keys(formik.initialValues[key]).map((nestedKey) => (
-                      <div className="userUpdateItem flex flex-col" key={`${key}.${nestedKey}`}>
-                        <label className="capitalize font-semibold">{`${nestedKey.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')}:`}</label>
-                        <input
-                          type="text"
-                          name={`${key}.${nestedKey}`}
-                          value={formik.values[key]?.[nestedKey] || ''}
-                          onChange={(e) => {
-                            formik.setFieldValue(`${key}.${nestedKey}`, e.target.value);
-                            setStaffData((prev) => ({
-                              ...prev,
-                              [key]: {
-                                ...prev[key],
-                                [nestedKey]: e.target.value,
-                              },
-                            }));
-                          }}
-                          onBlur={formik.handleBlur}
-                          className="userUpdateInput border-2 rounded-md focus:outline-ek-green p-1 px-2"
-                        />
-                        {formik.touched[key]?.[nestedKey] && formik.errors[key]?.[nestedKey] ? (
-                          <div className="error text-red-600">{formik.errors[key][nestedKey]}</div>
-                        ) : null}
-                      </div>
-                    ));
-                  }
-                  return (
-                    <div className="userUpdateItem flex flex-col" key={key}>
-                      <label className="capitalize font-semibold">{`${key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')}:`}</label>
-                      <input
-                        type="text"
-                        name={key}
-                        value={formik.values[key] || ''}
-                        onChange={(e) => {
-                          formik.handleChange(e);
-                          setStaffData((prev) => ({
-                            ...prev,
-                            [key]: e.target.value,
-                          }));
-                        }}
-                        onBlur={formik.handleBlur}
-                        className="userUpdateInput border-2 rounded-md focus:outline-ek-green p-1 px-2"
-                      />
-                      {formik.touched[key] && formik.errors[key] ? (
-                        <div className="error text-red-600 text-[12px]">{formik.errors[key]}</div>
-                      ) : null}
-                    </div>
-                  );
-                })}
+                <div className="userUpdateItem flex flex-col gap-1">
+                  <label htmlFor="title" className="text-sm font-bold">Product Name</label>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="Product Name"
+                    className="userUpdateInput border-2 rounded-md focus:outline-ek-green p-2"
+                    {...formik.getFieldProps('title')}
+                  />
+                  {formik.touched.title && formik.errors.title ? (
+                    <div className="text-red-600 text-sm">{formik.errors.title}</div>
+                  ) : null}
+                </div>
+                <div className="userUpdateItem flex flex-col gap-1">
+                  <label htmlFor="price" className="text-sm font-bold">Price</label>
+                  <input
+                    type="number"
+                    id="price"
+                    name="price"
+                    placeholder="Price"
+                    className="userUpdateInput border-2 rounded-md focus:outline-ek-green p-2"
+                    {...formik.getFieldProps('price')}
+                  />
+                  {formik.touched.price && formik.errors.price ? (
+                    <div className="text-red-600 text-sm">{formik.errors.price}</div>
+                  ) : null}
+                </div>
+                <div className="userUpdateItem flex flex-col gap-1">
+                  <label htmlFor="metric" className="text-sm font-bold">Unit</label>
+                  <input
+                    type="text"
+                    id="metric"
+                    name="metric"
+                    placeholder="Unit"
+                    className="userUpdateInput border-2 rounded-md focus:outline-ek-green p-2"
+                    {...formik.getFieldProps('metric')}
+                  />
+                  {formik.touched.metric && formik.errors.metric ? (
+                    <div className="text-red-600 text-sm">{formik.errors.metric}</div>
+                  ) : null}
+                </div>
+                <div className="userUpdateItem flex flex-col gap-1">
+                  <label htmlFor="rating" className="text-sm font-bold">Rating</label>
+                  <input
+                    type="number"
+                    id="rating"
+                    name="rating"
+                    className="userUpdateInput border-2 rounded-md focus:outline-ek-green p-2"
+                    placeholder="Rating"
+                    {...formik.getFieldProps('rating')}
+                  />
+                  {formik.touched.rating && formik.errors.rating ? (
+                    <div className="text-red-600 text-sm">{formik.errors.rating}</div>
+                  ) : null}
+                </div>
+                <div className="userUpdateItem flex flex-col gap-1">
+                  <label htmlFor="inStock" className="text-sm font-bold">In Stock</label>
+                  <select id="inStock" name="inStock" className="userUpdateInput border-2 rounded-md focus:outline-ek-green p-2" {...formik.getFieldProps('inStock')}>
+                    <option value="true">In Stock</option>
+                    <option value="false">Out of Stock</option>
+                  </select>
+                  {formik.touched.inStock && formik.errors.inStock ? (
+                    <div className="text-red-600 text-sm">{formik.errors.inStock}</div>
+                  ) : null}
+                </div>
 
                 <div {...getRootProps({ className: 'dropzone border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-ek-green' })}>
                   <input {...getInputProps()} />
                   <p className="text-sm text-gray-500">
-                    Drag &apos;n&apos; drop an image here, or click to select files (JPEG/PNG, max 1MB)
+                    Drag &apos;n&apos; drop an image here, or click to select files (JPEG/PNG, max 3MB)
                   </p>
                 </div>
+                <div className="userUpdateItem flex flex-col gap-1">
+                  <label htmlFor="description" className="text-sm font-bold">Description</label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Description"
+                    className="userUpdateInput border-2 rounded-md focus:outline-ek-green p-2"
+                    rows={4}
+                    {...formik.getFieldProps('description')}
+                  />
+                  {formik.touched.description && formik.errors.description ? (
+                    <div className="text-red-600 text-sm">{formik.errors.description}</div>
+                  ) : null}
+                </div>
 
-                {formik.values.image && (
+                {formik.values.productImage && (
                   <div className="mt-4">
-                    <p className="font-medium text-sm">Image Preview:</p>
-                    <img src={formik.values.image} alt="Uploaded Preview" className="max-w-full h-32 object-cover mt-2 rounded-lg shadow-md" />
+                    <p className="text-sm font-bold">Image Preview:</p>
+                    <img src={formik.values.productImage} alt="Uploaded Preview" className="max-w-full h-32 object-cover mt-2 rounded-lg shadow-md" />
                   </div>
                 )}
 
@@ -328,7 +306,7 @@ const UpdateStaff = () => {
                 )}
 
               </div>
-              <button type="submit" className="userUpdateButton bg-ek-deep text-white py-2 px-4 self-start rounded-md hover:bg-ek-green transition-all">
+              <button type="submit" className="userUpdateButton bg-ek-green text-white py-2 px-4 self-start rounded-md hover:bg-ek-green transition-all">
                 {isLoading ? <ImSpinner3 className="animate-spin text-lg" /> : 'Update'}
               </button>
             </form>

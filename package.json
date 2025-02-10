@@ -1,5 +1,5 @@
 {
-  "name": "el-kaniserd",
+  "name": "palmshops",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -23,6 +23,7 @@
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.3.5",
     "react-icons": "^5.4.0",
+    "react-medium-image-zoom": "^5.2.13",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.0.2",
     "react-toastify": "^10.0.6",
