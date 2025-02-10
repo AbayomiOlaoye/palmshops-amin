@@ -21,43 +21,24 @@ const NewProduct = () => {
   }
 
   const validationSchema = Yup.object({
-    firstName: Yup.string().required('First Name is required'),
-    lastName: Yup.string().required('Last Name is required'),
-    email: Yup.string().email('Invalid email format').required('Email is required'),
-    phone: Yup.string().required('Phone number is required'),
-    address: Yup.string().required('Address is required'),
-    password: Yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
-    next_of_kin: Yup.string().required('Next of kin is required'),
-    next_of_kin_phone: Yup.string().required('Next of kin phone is required'),
-    bankDetails: Yup.object({
-      bankName: Yup.string().required('Bank name is required'),
-      accountNumber: Yup.string().required('Account number is required'),
-    }),
-    department: Yup.string().required('Department is required'),
-    salary: Yup.number().required('Salary is required').positive('Must be a positive number'),
-    jobTitle: Yup.string().required('Job title is required'),
-    image: Yup.string().required('Image is required'),
+    title: Yup.string().required('Product name is required'),
+    price: Yup.number().required('Price is required'),
+    rating: Yup.number().required('Rating is required'),
+    description: Yup.string().required('Description is required'),
+    metric: Yup.string().required('Metric is required'),
+    inStock: Yup.boolean().required('In stock is required'),
+    productImage: Yup.string().required('Product image is required'),
   });
 
   const formik = useFormik({
     initialValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      address: '',
-      password: '',
-      next_of_kin: '',
-      next_of_kin_phone: '',
-      department: '',
-      jobTitle: '',
-      salary: '',
-      bankDetails: {
-        bankName: '',
-        accountNumber: '',
-      },
-      image: '',
-      role: '',
+      title: '',
+      price: '',
+      rating: '',
+      description: '',
+      metric: '',
+      inStock: '',
+      productImage: '',
     },
     validationSchema,
     onSubmit: async (values) => {
@@ -80,23 +61,13 @@ const NewProduct = () => {
   useEffect(() => {
     formik.resetForm({
       initialValues: {
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        address: '',
-        password: '',
-        next_of_kin: '',
-        next_of_kin_phone: '',
-        department: '',
-        jobTitle: '',
-        salary: '',
-        bankDetails: {
-          bankName: '',
-          accountNumber: '',
-        },
-        image: '',
-        role: '',
+        title: '',
+        price: '',
+        rating: '',
+        description: '',
+        metric: '',
+        inStock: '',
+        productImage: '',
       },
     });
   }, []);
