@@ -84,6 +84,15 @@ const Order = () => {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
   return (
     <motion.section className="max-w-full"
       initial={{ opacity: 0, x: '-20%' }}
@@ -153,10 +162,16 @@ const Order = () => {
                   <div className="info flex flex-col gap-2 mb-4">
                     {staffData?.paymentDetails && (
                       <Zoom>
-                        <img src={staffData?.paymentDetails} className="w-[100%] h-[500px]" alt="Uploaded evidence"  />
+                        <img src={staffData?.paymentDetails} className="w-[100%] h-[200px]" alt="Uploaded evidence"  />
                       </Zoom>
                     )}
-                    <a href={staffData?.title} download={staffData?.title} className="download bg-ek-lime p-2 text-center rounded">
+                    <a
+                      href={staffData.paymentDetails}
+                      download={staffData.title ? `${staffData.title}-payment-evidence` : 'payment-evidence'}
+                      className="download cursor-pointer bg-ek-lime p-2 text-center rounded hover:bg-ek-green transition-colors" // Added styling
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Download
                     </a>
                   </div>
