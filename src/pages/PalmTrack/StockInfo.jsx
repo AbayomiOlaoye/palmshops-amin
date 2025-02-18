@@ -18,7 +18,6 @@ const StockInfo = () => {
 
   useEffect(() => {
     const inventories = [...farms, ...harvested];
-    console.log(inventories);
     const stock = inventories.find((item) => item._id === id);
     setStockData(stock);
     setIsLoading(false);
@@ -104,6 +103,16 @@ const StockInfo = () => {
                   <div className="info flex gap-24">
                     <span className="w-[150px]">Coordinates:</span>
                     <span className="capitalize">{`${absLatitude}° ${latDirection}, ${absLongitude}° ${lonDirection}` }</span>
+                  </div>
+                  <div className="info flex gap-24 mb-4">
+                    <span className="w-[150px]">View on Map:</span>
+                    <a
+                      href={`https://www.google.com/maps?q=${absLatitude}°${latDirection},${absLongitude}°${lonDirection}`}
+                      target="_blank"
+                      className="capitalize underline cursor-pointer text-ek-green font-bold"
+                    >
+                      Click here
+                    </a>
                   </div>
                 </div>
                 <div className="work flex gap-6 items-center">

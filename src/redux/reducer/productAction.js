@@ -15,7 +15,7 @@ export const addProduct = createAsyncThunk(
   'product/addProduct',
   async (productData, { rejectWithValue }) => {
     try {
-      const { data } = await auth.post('/products/stock', productData);
+      const { data } = await auth.post('/products/new', productData);
       toast.success('Product was added successfully.', options);
       return data;
     } catch (error) {
@@ -75,7 +75,7 @@ export const deleteProduct = createAsyncThunk(
   'product/deleteStock',
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await auth.delete(`/products/stock/${id}`);
+      const { data } = await auth.delete(`/products/${id}`);
       toast.success('Product removed successfully', options);
       return data;
     } catch (error) {

@@ -8,6 +8,9 @@ import { auth } from '../../../apiCall';
 
 const Requests = () => {
   const [requests, setRequests] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState('');
+  const [status, setStatus] = useState('pending');
   const requestsWithSerial = requests && requests?.length > 0 
   ? requests.map((req, index) => {
       return { ...req, id: index + 1 };
@@ -29,6 +32,37 @@ const Requests = () => {
   const getDate = (date) => {
     return new Date(date).toDateString();
   }
+
+  const openModal = (id) => {
+    setSelectedRequestId(id);
+    setOpen(true);
+  }
+
+  const closeModal = () => {
+    setOpen(false);
+  };
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+  };
+
+
+  const handleUpdate = async () => {
+    try {
+      await auth.put(`/request/update/${selectedRequestId}`, { status: status });
+
+      setRequests(prevRequests =>
+        prevRequests.map(req =>
+          req._id === selectedRequestId ? { ...req, status: status } : req
+        )
+      );
+
+      closeModal();
+
+    } catch (error) {
+      console.error("Error updating request:", error);
+    }
+  };
 
   const columns = [
     { field: "id", headerName: "S/N", width: 50 },
@@ -85,10 +119,10 @@ const Requests = () => {
       field: "action",
       headerName: "Action",
       width: 100,
-      renderCell: () => {
+      renderCell: (params) => {
         return (
           <div className='flex gap-4 items-center h-30'>
-              <button className="bg-ek-green text-white px-2 h-[28px] hover:bg-opacity-75 transition-all flex items-center rounded">Edit</button>
+              <button type="button" onClick={() => openModal(params.row?._id)} className="bg-ek-green text-white px-2 py-1 h-[28px] hover:bg-opacity-75 transition-all flex items-center rounded">Edit</button>
           </div>
         );
       },
@@ -136,6 +170,30 @@ const Requests = () => {
           ) : (<p>Loading data...</p>)}
         </article>
       </section>
+      {
+        open && (
+          <motion.section
+        initial={{ x: '100vw' }}
+        animate={{ x: open ? 0 : '100vw' }}
+        transition={{ type: 'spring', stiffness: 60 }}
+        className="fixed top-0 right-0 h-full bg-white w-30vw z-50 p-20"
+      >
+        <select
+          name="status"
+          className="border-2 border-ek-light rounded-lg w-full p-2"
+          value={status}
+          onChange={handleStatusChange}
+        >
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <div className="flex gap-2 justify-between mt-4">
+          <button type="button" onClick={closeModal} className="bg-gray-400 text-white px-3 py-2 rounded hover:bg-gray-500 transition-all">Cancel</button>
+          <button type="button" onClick={handleUpdate} className="bg-ek-green text-white px-3 py-2 rounded hover:bg-opacity-75 transition-all">Update</button>
+        </div>
+      </motion.section> 
+      )}
     </motion.section>
   )
 }

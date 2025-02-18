@@ -47,7 +47,7 @@ const NewProduct = () => {
         .then(() => {
           setIsLoading(false);
           formik.resetForm();
-          navigate('/hr');
+          navigate('/products');
         })
         .catch(() => {
           setIsLoading(false);
@@ -108,7 +108,7 @@ const NewProduct = () => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       acceptedFiles.map(async (file) => {
         const base64Image = await convertToBase64(file);
-        formik.setFieldValue('image', base64Image);
+        formik.setFieldValue('productImage', base64Image);
       });
     }
 
@@ -238,7 +238,7 @@ const NewProduct = () => {
                     onBlur={formik.handleBlur}
                     className="userUpdateInput border-2 rounded-md focus:outline-ek-green p-1 px-2"
                   >
-                    <option value="">In Stock</option>
+                    <option value="">In Stock?</option>
                     <option value={true}>Yes</option>
                     <option value={false}>No</option>
                   </select>
