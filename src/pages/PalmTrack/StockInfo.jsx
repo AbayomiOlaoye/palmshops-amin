@@ -83,7 +83,7 @@ const StockInfo = () => {
                   </div>
                   <div className="info flex gap-24">
                     <span className="w-[150px]">Email:</span>
-                    <span className="capitalize">{stockData?.uesrId?.email ? stockData?.uesrId?.email : 'Nil' }</span>
+                    <span className="capitalize">{stockData?.userId?.email ? stockData?.userId?.email : 'Nil' }</span>
                   </div>
                 </div>
                 <div className="work flex flex-col gap-1">

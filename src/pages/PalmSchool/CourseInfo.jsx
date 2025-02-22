@@ -7,18 +7,12 @@ import { deleteCourse } from '../../redux/reducer/courseActions';
 
 const CourseInfo = () => {
   const { courses } = useSelector((state) => state.courses);
-  console.log(courses);
-  // const { users } = useSelector((state) => state?.auth);
+
   const [courseData, setCourseData] = useState(courses || []);
   const { id } = useParams();
   const dispatch = useDispatch();
 
   const course = courses.find((record) => record._id === id);
-  // const getUserName = (userId) => {
-  //   const user = users.find((record) => record._id === userId);
-  //   // console.log(users);
-  //   return user?.name;
-  // };
 
   if (!course) {
     return <div className="text-center text-red-500">Course information not available</div>;
@@ -58,9 +52,9 @@ const CourseInfo = () => {
             <span className="font-medium">Course Information</span>
           </motion.article>
           <article className="other-actions flex gap-2">
-            <Link to={`/courses/edit/${id}`} className="border-2 rounded-lg px-3 py-2 hover:bg-ek-deep hover:text-ek-green">Edit Course</Link>
+            <Link to={`/courses/edit/${id}`} className="border-2 rounded-lg px-3 py-2 hover:bg-ek-light hover:text-ek-green">Edit Course</Link>
             <button
-              className="border-2 rounded-lg px-3 py-2 hover:bg-ek-deep hover:text-ek-green"
+              className="border-2 rounded-lg px-3 py-2 hover:bg-ek-light hover:text-ek-green"
               onClick={() => handleDelete(course._id)}
             >
               Delete Course

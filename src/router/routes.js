@@ -16,6 +16,8 @@ import StockInfo from "../pages/PalmTrack/StockInfo";
 import Orders from "../pages/PalmStore/orders/Orders";
 import Order from "../pages/PalmStore/orders/Order";
 import Requests from "../pages/PalmStore/orders/Request";
+import StoreRequests from "../pages/PalmStore/lease/SellLeaseReq";
+import ItemCrop from "../pages/PalmStore/lease/Item";
 
 const routes = {
   unauthenticated: [
@@ -30,6 +32,8 @@ const routes = {
     { path: "/products/new", component: NewProduct },
     { path: "/products/orders", component: Orders },
     { path: "/products/orders/:id", component: Order },
+    { path: "/products/sales-lease-requests", component: StoreRequests },
+    { path: "/products/requests/:id", component: ItemCrop },
     { path: "/subscription", component: SubscriptionList },
     { path: "/users", component: AllUsers },
     { path: "/users/:id", component: User },

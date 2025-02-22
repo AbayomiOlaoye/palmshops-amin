@@ -29,7 +29,7 @@ export const updateCourse = createAsyncThunk(
   'courses/updateCourse',
   async (courseInfo, { rejectWithValue }) => {
     try {
-      const { data } = await auth.put(`/courses/${courseInfo._id}`, courseInfo);
+      const { data } = await auth.put(`/courses/${courseInfo._id}/update`, courseInfo);
       return data;
     } catch (error) {
       return rejectWithValue(error.response.data);

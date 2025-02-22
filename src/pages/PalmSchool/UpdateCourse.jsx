@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { MdArrowBack } from "react-icons/md";
 import { useFormik, FieldArray, FormikProvider } from "formik";
 import { useDropzone } from 'react-dropzone';
@@ -8,27 +8,25 @@ import { useDispatch, useSelector } from 'react-redux';
 import { motion } from "framer-motion";
 import { ImSpinner3 } from "react-icons/im";
 import { updateCourse } from "../../redux/reducer/courseActions";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 
 const UpdateCourse = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
   const { courses } = useSelector((state) => state.courses);
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [badImg, setBadImg] = useState({ status: false, message: '' });
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingModuleIndex, setEditingModuleIndex] = useState(null);
+  const [editingAssessmentIndex, setEditingAssessmentIndex] = useState(null);
+  const [editingQuestionIndex, setEditingQuestionIndex] = useState(null)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [course, setCourse] = useState(null);
-  console.log(editingIndex);
-
-  console.log(courses);
+  const [isAddAssessmentDialogOpen, setIsAddAssessmentDialogOpen] = useState(false);
 
   useEffect(() => {
     const course = courses.find((course) => course._id === id);
     setCourse(course);
   }, [courses, id]);
-
-  console.log('Got rendered')
 
   const handleGoBack = () => {
     window.history.back();
@@ -63,7 +61,15 @@ const UpdateCourse = () => {
   });
 
   const formik = useFormik({
-    initialValues: course,
+    initialValues: course || {
+      title: '',
+      price: '',
+      level: '',
+      mode: '',
+      description: '',
+      image: '',
+      modules: [],
+    },
     validationSchema,
     onSubmit: (values) => {
       if (values) {
@@ -73,7 +79,7 @@ const UpdateCourse = () => {
       setIsLoading(true);
       dispatch(updateCourse(id, values));
       setIsLoading(false);
-      navigate('/courses/info/' + id);
+      setIsEditDialogOpen(false);
     },
     enableReinitialize: true,
     validateOnChange: false,
@@ -86,7 +92,7 @@ const UpdateCourse = () => {
         formik.setErrors({});
         setBadImg({ status: false, message: '' });
       }, 3000);
-  
+
       return () => clearTimeout(timer);
     }
   }, [formik.errors, badImg]);
@@ -133,21 +139,35 @@ const UpdateCourse = () => {
     }
   }, [acceptedFiles, fileRejections]);
 
-  const handleEdit = (index) => {
-    console.log(index);
-    setEditingIndex(index);
-    setIsEditing(true);
+  const handleEdit = (moduleIndex, assessmentIndex, questionIndex) => {
+    setEditingModuleIndex(moduleIndex);
+    setEditingAssessmentIndex(assessmentIndex);
+    setEditingQuestionIndex(questionIndex);
+    setIsEditDialogOpen(true);
   };
 
-  const handleAddQuestion = (arrayHelpers, moduleIndex) => {
-    if (formik.values.modules[moduleIndex].assessments[editingIndex]?.questions?.length > 0) {
-      arrayHelpers.push({
-        questions: "",
-        options: ["", "", "", ""],
-        answers: [],
-      });
-    }
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setEditingModuleIndex(null);
+    setEditingAssessmentIndex(null);
+    setEditingQuestionIndex(null)
   };
+
+  const handleOpenAddAssessmentDialog = () => {
+    setIsAddAssessmentDialogOpen(true);
+};
+
+const handleCloseAddAssessmentDialog = () => {
+    setIsAddAssessmentDialogOpen(false);
+};
+const handleAddAssessment = (moduleIndex, assessmentsArrayHelpers) => {
+assessmentsArrayHelpers.push({
+    questions: [""],
+    options: [["", "", "", ""]],
+    answers: [[""]],
+});
+    setIsAddAssessmentDialogOpen(false)
+};
 
   return (
     <motion.section className="max-w-full"
@@ -251,9 +271,9 @@ const UpdateCourse = () => {
               </article>
               <article className="work flex flex-col gap-1 pt-10 items-center">
                 <h4 className="text-center p-2 font-bold">Course Avatar</h4>
-                  <div className="mt-4">
-                    <img src={formik.values?.image} alt="Uploaded Preview" className="max-w-full object-cover rounded-lg shadow-md" />
-                  </div>
+                <div className="mt-4">
+                  <img src={formik.values?.image} alt="Uploaded Preview" className="max-w-full object-cover rounded-lg shadow-md" />
+                </div>
                 <div {...getRootProps({ className: 'dropzone border-2 border-dashed rounded-lg p-4 mt-2 border-ek-lime text-center cursor-pointer hover:border-ek-green' })}>
                   <input {...getInputProps()} />
                   <p className="text-sm text-gray-500">
@@ -264,210 +284,223 @@ const UpdateCourse = () => {
                 {badImg.status && (
                   <div className="text-red-600 text-sm mt-2">{badImg.message}</div>
                 )}
-              </article> 
+              </article>
             </section>
-            <section className="userUpdateRight grid grid-cols-3 gap-10 item-center p-8 py-10">
+            <section className="userUpdateRight grid grid-cols-2 gap-10 item-center p-8 py-10">
               <FieldArray name="modules">
-                {({ push: addModule, remove, }) => (
+                {({ push: addModule, remove }) => (
                   <>
-                    {formik.values?.modules?.map((module, moduleIndex) => (
-                      <article key={moduleIndex + 1} className="userUpdateRight gap-6 flex flex-col col-span-2 mt-4">
-                        <h1 className="text-xl font-bold mb-5">Module {moduleIndex + 1}</h1>
-                        <div className="userUpdateItem relative flex gap-10">
-                          <label className="capitalize font-semibold w-[180px]">Module Title:</label>
-                          <input
-                            type="text"
-                            name={`modules.${moduleIndex}.subtopic`}
-                            value={module.subtopic}
-                            onChange={formik.handleChange}
-                            placeholder="Introduction to Agric-Science"
-                            onBlur={formik.handleBlur}
-                            className="userUpdateInput border-2 w-[80%] rounded-md focus:outline-ek-green p-1 px-2"
-                          />
-                          {formik.touched?.modules?.[moduleIndex]?.subtopic && formik.errors?.modules?.[moduleIndex]?.subtopic ? (
-                            <div className="error absolute top-16 text-red-600 text-[12px]">{formik.errors.modules?.[moduleIndex]?.subtopic}</div>
-                          ) : null}
-                        </div>
-                        <div className="userUpdateItem flex relative gap-10">
-                          <label className="capitalize font-semibold w-[180px]">Module Description:</label>
-                          <textarea
-                            type="text"
-                            name={`modules.${moduleIndex}.description`}
-                            value={module.description}
-                            onChange={formik.handleChange}
-                            placeholder="Introduction to Agric-Science"
-                            onBlur={formik.handleBlur}
-                            className="userUpdateInput border-2 w-[80%] rounded-md focus:outline-ek-green p-1 px-2"
-                          />
-                          {formik.touched.modules?.[moduleIndex]?.description && formik.errors.modules?.[moduleIndex]?.description ? (
-                            <div className="error absolute top-16 text-red-600 text-[12px]">{formik.errors.modules?.[moduleIndex]?.description}</div>
-                          ) : null}
-                        </div>
-                        <div className="userUpdateItem flex relative gap-10">
-                          <label className="capitalize font-semibold w-[180px]">Module Video Link:</label>
-                          <input
-                            type="text"
-                            name={`modules.${moduleIndex}.link`}
-                            value={module.link}
-                            onChange={formik.handleChange}
-                            placeholder="https://www.youtube.com/watch/..."
-                            onBlur={formik.handleBlur}
-                            className="userUpdateInput border-2 w-[80%] rounded-md focus:outline-ek-green p-1 px-2"
-                          />
-                          {formik.touched.modules?.[moduleIndex]?.link && formik.errors.modules?.[moduleIndex]?.link ? (
-                            <div className="error absolute top-16 text-red-600 text-[12px]">{formik.errors.modules?.[moduleIndex]?.link}</div>
-                          ) : null}
-                        </div>
-                        <div className="userUpdateItem flex relative gap-10">
-                          <label className="capitalize font-semibold w-[180px]">Module Avatar:</label>
-                          <input
-                            type="text"
-                            name={`modules.${moduleIndex}.img`}
-                            value={module.img}
-                            onChange={formik.handleChange}
-                            placeholder="https://www.image.com/..."
-                            onBlur={formik.handleBlur}
-                            className="userUpdateInput border-2 w-[80%] rounded-md focus:outline-ek-green p-1 px-2"
-                          />
-                          {formik.touched.modules?.[moduleIndex]?.img && formik.errors.modules?.[moduleIndex]?.img ? (
-                            <div className="error absolute top-16 text-red-600 text-[12px]">{formik.errors.modules?.[moduleIndex]?.img}</div>
-                          ) : null}
-                        </div>
-                        {/* Assessment implementation just as the data structure requires */}
-                        <article className="work flex flex-col gap-5">
-                          <table className="table-auto w-full border-collapse border border-gray-300">
-                            <thead>
-                              <tr className="bg-gray-200">
-                                <th className="border border-gray-300 px-4 py-2">S/N</th>
-                                <th className="border border-gray-300 px-4 py-2">Questions</th>
-                                <th className="border border-gray-300 px-4 py-2">Options</th>
-                                <th className="border border-gray-300 px-4 py-2">Answers</th>
-                                <th className="border border-gray-300 px-4 py-2">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {module.assessments.map((assessment, assessmentIndex) =>
-                                assessment.questions.map((question, questionIndex) => (
-                                  <tr
-                                    key={`${module._id}-${assessmentIndex}-${questionIndex}`}
-                                    className="text-left"
-                                  >
-                                    <td className="border border-gray-300 px-4 py-2 text-center">
-                                      {questionIndex + 1}
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2">
-                                      {question}
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2">
-                                      <ul className="list-disc list-inside">
-                                        {assessment.options[questionIndex]?.map(
-                                          (option, optionIndex) => (
-                                            <li key={optionIndex}>{option}</li>
-                                          )
-                                        )}
-                                      </ul>
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2">
-                                      <ul className="list-disc list-inside">
-                                        {assessment.answers[questionIndex]?.map(
-                                          (answer, answerIndex) => (
-                                            <li key={answerIndex}>{answer}</li>
-                                          )
-                                        )}
-                                      </ul>
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2 text-center">
-                                      <button
-                                        onClick={() => handleEdit(assessmentIndex)}
-                                        className="text-ek-green underline"
-                                      >
-                                        Edit
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))
-                              )}
-                            </tbody>
-                          </table>
-                        </article>
-                        {isEditing && (
-                          <>
-                          <FieldArray
-                            name={`modules.${moduleIndex}.assessments.${editingIndex}.questions`}
-                            render={(arrayHelpers) => (
-                              <article className="work flex flex-col gap-5">
-                                {formik?.values?.modules[moduleIndex]?.assessments[editingIndex]?.questions?.map((question, questionIndex) => (
-                                <article key={questionIndex} className="flex flex-col gap-5">
-                                  <div key={questionIndex} className="flex gap-5 item-center">
-                                    <label className="font-semibold">{`Question ${questionIndex + 1}`}</label>
-                                    <input
-                                      type="text"
-                                      name={`modules.${moduleIndex}.assessments.${editingIndex}.questions.${questionIndex}`}
-                                      value={question}
-                                      onChange={formik.handleChange}
-                                      placeholder="Enter question"
-                                      className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green" />
-                                  </div>
-                                  <div className="flex gap-5 flex-col">
-                                    <label className="font-semibold">Options:</label>
-                                    {formik.values?.modules[moduleIndex]?.assessments[editingIndex]?.options[questionIndex]?.map((option, optionIndex) => (
-                                      <div key={optionIndex} className="flex gap-5 flex-col items-start">
-                                        <input
-                                          type="text"
-                                          name={`modules.${moduleIndex}.assessments.${editingIndex}.options.${questionIndex}.${optionIndex}`}
-                                          value={option}
-                                          onChange={formik.handleChange}
-                                          placeholder="Enter option"
-                                          className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green"
-                                        />
-                                      </div>
-                                      ))}
-                                  </div>
-                                  <div className="flex gap-5 items-center">
-                                    <label className="font-semibold">Answers:</label>
-                                    {formik.values?.modules[moduleIndex]?.assessments[editingIndex]?.answers[questionIndex]?.map((answer, answerIndex) => (
-                                      <div key={answerIndex} className="flex gap-5">
-                                        <input
-                                          type="text"
-                                          name={`modules.${moduleIndex}.assessments.${editingIndex}.answers.${questionIndex}.${answerIndex}`}
-                                          value={answer}
-                                          onChange={formik.handleChange}
-                                          placeholder="Enter answer"
-                                          className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green" />
-                                      </div>
-                                    ))}
-                                  </div>
-                                </article>
-                                ))}
-                                <button
-                                  type="button"
-                                  className="px-4 py-2 bg-green-600 text-white rounded-md"
-                                  onClick={() => handleAddQuestion(arrayHelpers, moduleIndex)}
-                                >
-                                  Add Question
-                                </button>
-                              </article>
-                            )}
-                          />
+                    {isLoading || !formik.values?.modules ? (
+                      <p>Loading modules...</p>
+                    ) : (
+                      formik.values?.modules?.map((module, moduleIndex) => (
+                        <article key={moduleIndex + 1} className="userUpdateRight gap-6 flex flex-col col-span-2 mt-4">
+                          <h1 className="text-xl font-bold mb-5">Module {moduleIndex + 1}</h1>
+                          <div className="userUpdateItem relative flex gap-10">
+                            <label className="capitalize font-semibold w-[180px]">Module Title:</label>
+                            <input
+                              type="text"
+                              name={`modules.${moduleIndex}.subtopic`}
+                              value={module.subtopic}
+                              onChange={formik.handleChange}
+                              placeholder="Introduction to Agric-Science"
+                              onBlur={formik.handleBlur}
+                              className="userUpdateInput border-2 w-[80%] rounded-md focus:outline-ek-green p-1 px-2"
+                            />
+                            {formik.touched?.modules?.[moduleIndex]?.subtopic && formik.errors?.modules?.[moduleIndex]?.subtopic ? (
+                              <div className="error absolute top-16 text-red-600 text-[12px]">{formik.errors.modules?.[moduleIndex]?.subtopic}</div>
+                            ) : null}
+                          </div>
+                          <div className="userUpdateItem flex relative gap-10">
+                            <label className="capitalize font-semibold w-[180px]">Module Description:</label>
+                            <textarea
+                              type="text"
+                              name={`modules.${moduleIndex}.description`}
+                              value={module.description}
+                              onChange={formik.handleChange}
+                              placeholder="Introduction to Agric-Science"
+                              onBlur={formik.handleBlur}
+                              className="userUpdateInput border-2 w-[80%] rounded-md focus:outline-ek-green p-1 px-2"
+                            />
+                            {formik.touched.modules?.[moduleIndex]?.description && formik.errors.modules?.[moduleIndex]?.description ? (
+                              <div className="error absolute top-16 text-red-600 text-[12px]">{formik.errors.modules?.[moduleIndex]?.description}</div>
+                            ) : null}
+                          </div>
+                          <div className="userUpdateItem flex relative gap-10">
+                            <label className="capitalize font-semibold w-[180px]">Module Video Link:</label>
+                            <input
+                              type="text"
+                              name={`modules.${moduleIndex}.link`}
+                              value={module.link}
+                              onChange={formik.handleChange}
+                              placeholder="https://www.youtube.com/watch/..."
+                              onBlur={formik.handleBlur}
+                              className="userUpdateInput border-2 w-[80%] rounded-md focus:outline-ek-green p-1 px-2"
+                            />
+                            {formik.touched.modules?.[moduleIndex]?.link && formik.errors.modules?.[moduleIndex]?.link ? (
+                              <div className="error absolute top-16 text-red-600 text-[12px]">{formik.errors.modules?.[moduleIndex]?.link}</div>
+                            ) : null}
+                          </div>
+                          <div className="userUpdateItem flex relative gap-10">
+                            <label className="capitalize font-semibold w-[180px]">Module Avatar:</label>
+                            <input
+                              type="text"
+                              name={`modules.${moduleIndex}.img`}
+                              value={module.img}
+                              onChange={formik.handleChange}
+                              placeholder="https://www.image.com/..."
+                              onBlur={formik.handleBlur}
+                              className="userUpdateInput border-2 w-[80%] rounded-md focus:outline-ek-green p-1 px-2"
+                            />
+                            {formik.touched.modules?.[moduleIndex]?.img && formik.errors.modules?.[moduleIndex]?.img ? (
+                              <div className="error absolute top-16 text-red-600 text-[12px]">{formik.errors.modules?.[moduleIndex]?.img}</div>
+                            ) : null}
+                          </div>
+
+                          <article className="work flex flex-col gap-5">
+                            <table className="table-auto w-full border-collapse border border-gray-300">
+                              <thead>
+                                <tr className="bg-gray-200">
+                                  <th className="border border-gray-300 px-4 py-2">S/N</th>
+                                  <th className="border border-gray-300 px-4 py-2">Questions</th>
+                                  <th className="border border-gray-300 px-4 py-2">Options</th>
+                                  <th className="border border-gray-300 px-4 py-2">Answers</th>
+                                  <th className="border border-gray-300 px-4 py-2">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {module.assessments.map((assessment, assessmentIndex) =>
+                                  assessment.questions.map((question, questionIndex) => (
+                                    <tr
+                                      key={`${module._id}-${assessmentIndex}-${questionIndex}`}
+                                      className="text-left"
+                                    >
+                                      <td className="border border-gray-300 px-4 py-2 text-center">
+                                        {questionIndex + 1}
+                                      </td>
+                                      <td className="border border-gray-300 px-4 py-2">
+                                        {question}
+                                      </td>
+                                      <td className="border border-gray-300 px-4 py-2">
+                                        <ul className="list-disc list-inside">
+                                          {assessment.options[questionIndex]?.map(
+                                            (option, optionIndex) => (
+                                              <li key={optionIndex}>{option}</li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </td>
+                                      <td className="border border-gray-300 px-4 py-2">
+                                        <ul className="list-disc list-inside">
+                                          {assessment.answers[questionIndex]?.map(
+                                            (answer, answerIndex) => (
+                                              <li key={answerIndex}>{answer}</li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </td>
+                                      <td className="border border-gray-300 px-4 py-2 text-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleEdit(moduleIndex, assessmentIndex, questionIndex)}
+                                          className="text-ek-green underline"
+                                        >
+                                          Edit
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </article>
+
+                          <article className="work flex gap-5">
+                            <button type="button" className='border-2 rounded-lg px-3 py-2 w-fit bg-ek-gray text-white hover:bg-red-500' onClick={() => remove(moduleIndex)}>
+                              Remove Module
+                            </button>
                             <button
                               type="button"
-                              onClick={() => setIsEditing(false)}
-                              className="px-4 py-2 border rounded-md"
+                              className='border-2 rounded-lg px-3 py-2 self-end hover:bg-ek-green h-fit w-fit text-white bg-ek-light'
+                              onClick={() => handleOpenAddAssessmentDialog(moduleIndex)}
                             >
-                              Cancel
+                              Add Assessments
                             </button>
-                          </>
-                        )}
-
-                        <button type="button" onClick={() => remove(moduleIndex)}>
-                          Remove Module
-                        </button>
-                      </article>
-                    ))}
+                          </article>
+                          <Dialog open={isAddAssessmentDialogOpen} onClose={handleCloseAddAssessmentDialog} fullWidth maxWidth="md">
+                            <DialogTitle>Add Assessment</DialogTitle>
+                            <DialogContent>
+                              {editingModuleIndex !== null && (
+                                <FieldArray
+                                  name={`modules.${editingModuleIndex}.assessments`}
+                                  render={(assessmentsArrayHelpers) => (
+                                    <article className="work flex flex-col gap-5">
+                                      {formik?.values?.modules[editingModuleIndex]?.assessments?.map((assessment, assessmentIndex) => (
+                                        <article key={assessmentIndex} className="flex flex-col gap-5">
+                                          <div className="flex gap-5 item-center">
+                                            <label className="font-semibold">{`Assessment ${assessmentIndex + 1}`}</label>
+                                            <input
+                                              type="text"
+                                              name={`modules.${editingModuleIndex}.assessments.${assessmentIndex}.questions.0`}
+                                              value={assessment.questions[0]}
+                                              onChange={formik.handleChange}
+                                              placeholder="Enter question"
+                                              className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green"
+                                            />
+                                          </div>
+                                          <div className="flex gap-5 flex-col">
+                                            <label className="font-semibold">Options:</label>
+                                            {formik.values?.modules[editingModuleIndex]?.assessments[assessmentIndex]?.options[0]?.map((option, optionIndex) => (
+                                              <div key={optionIndex} className="flex gap-5 items-start">
+                                                <input
+                                                  type="text"
+                                                  name={`modules.${editingModuleIndex}.assessments.${assessmentIndex}.options.0.${optionIndex}`}
+                                                  value={option}
+                                                  onChange={formik.handleChange}
+                                                  placeholder="Enter option"
+                                                  className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green"
+                                                />
+                                              </div>
+                                            ))}
+                                          </div>
+                                          <div className="flex gap-5 items-center">
+                                            <label className="font-semibold">Answers:</label>
+                                            {formik.values?.modules[editingModuleIndex]?.assessments[assessmentIndex]?.answers[0]?.map((answer, answerIndex) => (
+                                              <div key={answerIndex} className="flex gap-5">
+                                                <input
+                                                  type="text"
+                                                  name={`modules.${editingModuleIndex}.assessments.${assessmentIndex}.answers.0.${answerIndex}`}
+                                                  value={answer}
+                                                  onChange={formik.handleChange}
+                                                  placeholder="Enter answer"
+                                                  className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green" />
+                                              </div>
+                                            ))}
+                                          </div>
+                                          <Button onClick={() => handleAddAssessment(editingModuleIndex, assessmentsArrayHelpers)} color="primary">
+                                            Add Assessment
+                                          </Button>
+                                        </article>
+                                      ))}
+                                    </article>
+                                  )}
+                                />
+                              )}
+                            </DialogContent>
+                            <DialogActions>
+                              <Button onClick={handleCloseAddAssessmentDialog} color="primary">
+                                Close
+                              </Button>
+                            </DialogActions>
+                          </Dialog>
+                        </article>
+                      ))
+                    )}
                     <button
                       type="button"
+                      className='border-2 rounded-lg px-3 py-2 self-end hover:bg-ek-green h-fit w-fit text-white bg-ek-light'
                       onClick={() => addModule({ subtopic: "", description: "", link: "", img: "", assessments: [] })}
-                      disabled={!formik.values?.modules.every(m => m.subtopic && m.description && m.link && m.img)}
+                      disabled={!formik.values?.modules?.length || formik.values.modules.some(m => !m.subtopic || !m.description || !m.link || !m.img)}
                     >
                       Add Module
                     </button>
@@ -475,9 +508,74 @@ const UpdateCourse = () => {
                 )}
               </FieldArray>
             </section>
-            <button type="submit" className="userUpdateButton bg-ek-green text-white py-2 p-4 w-max rounded-md hover:bg-ek-light hover:text-ek-green transition-all">
+            <button type="submit" className="userUpdateButton bg-ek-green text-white m-5 py-2 p-4 w-max rounded-md hover:bg-ek-light hover:text-ek-green transition-all">
               {isLoading ? <ImSpinner3 className="animate-spin text-lg" /> : 'Save'}
             </button>
+            <Dialog open={isEditDialogOpen} onClose={handleCloseEditDialog} fullWidth maxWidth="md">
+              <DialogTitle>Edit Question</DialogTitle>
+              <DialogContent>
+                {editingModuleIndex !== null && editingAssessmentIndex !== null && editingQuestionIndex !== null && (
+                  <FieldArray
+                    name={`modules.${editingModuleIndex}.assessments.${editingAssessmentIndex}.questions`}
+                    render={() => (
+                      <article className="work flex flex-col gap-5">
+                        {formik?.values?.modules[editingModuleIndex]?.assessments[editingAssessmentIndex]?.questions?.map((question, questionIndex) => (
+                          questionIndex === editingQuestionIndex ?
+                            <article key={questionIndex} className="flex flex-col gap-5">
+                              <div className="flex gap-5 item-center">
+                                <label className="font-semibold">{`Question ${questionIndex + 1}`}</label>
+                                <input
+                                  type="text"
+                                  name={`modules.${editingModuleIndex}.assessments.${editingAssessmentIndex}.questions.${questionIndex}`}
+                                  value={question}
+                                  onChange={formik.handleChange}
+                                  placeholder="Enter question"
+                                  className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green"
+                                />
+                              </div>
+                              <div className="flex gap-5 flex-col">
+                                <label className="font-semibold">Options:</label>
+                                {formik.values?.modules[editingModuleIndex]?.assessments[editingAssessmentIndex]?.options[questionIndex]?.map((option, optionIndex) => (
+                                  <div key={optionIndex} className="flex gap-5 items-start">
+                                    <input
+                                      type="text"
+                                      name={`modules.${editingModuleIndex}.assessments.${editingAssessmentIndex}.options.${questionIndex}.${optionIndex}`}
+                                      value={option}
+                                      onChange={formik.handleChange}
+                                      placeholder="Enter option"
+                                      className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex gap-5 items-center">
+                                <label className="font-semibold">Answers:</label>
+                                {formik.values?.modules[editingModuleIndex]?.assessments[editingAssessmentIndex]?.answers[questionIndex]?.map((answer, answerIndex) => (
+                                  <div key={answerIndex} className="flex gap-5">
+                                    <input
+                                      type="text"
+                                      name={`modules.${editingModuleIndex}.assessments.${editingAssessmentIndex}.answers.${questionIndex}.${answerIndex}`}
+                                      value={answer}
+                                      onChange={formik.handleChange}
+                                      placeholder="Enter answer"
+                                      className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green" />
+                                  </div>
+                                ))}
+                              </div>
+                            </article>
+                            : null
+                        ))}
+                      </article>
+                    )}
+                  />
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseEditDialog} color="primary">
+                  Close
+                </Button>
+              </DialogActions>
+            </Dialog>
           </form>
         </FormikProvider>
       </section>

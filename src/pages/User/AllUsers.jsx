@@ -17,8 +17,6 @@ const AllStaff = () => {
   })
   : [];
 
-  console.log(users[0]);
-
   const [userData, setUserData] = useState(userWithSerial);
   const dispatch = useDispatch();
 
