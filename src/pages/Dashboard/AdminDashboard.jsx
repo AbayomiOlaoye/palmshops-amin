@@ -9,10 +9,6 @@ import { fetchUsers } from '../../redux/reducer/authActions';
 import PalmOrders from './contents/ProShot';
 import PalmTrack from './contents/InvenShot';
 import PalmSchool from './contents/ReqShot';
-// import Records from './contents/ProShot';
-// import Overview from './contents/StockShot';
-// import Inventory from './contents/InvenShot';
-// import Sales from './contents/SalesShot';
 
 const AdminDashboard = () => {
   const dispatch = useDispatch();
