@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { MdPeopleAlt, MdLocalGroceryStore } from 'react-icons/md';
+import { MdPeopleAlt } from 'react-icons/md';
 import { FaMoneyBills, FaRectangleList } from 'react-icons/fa6';
 import Top from '../Dashboard/Top';
 import { fetchUsers } from '../../redux/reducer/authActions';
-// import { auth } from '../../apiCall';
+import { auth } from '../../apiCall';
 import PalmOrders from './contents/ProShot';
 import PalmTrack from './contents/InvenShot';
 import PalmSchool from './contents/ReqShot';
@@ -13,39 +13,72 @@ import PalmSchool from './contents/ReqShot';
 const AdminDashboard = () => {
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.auth);
-  // const { purchases } = useSelector((state) => state.purchases);
-  // const [weeklyRevenue, setWeeklyRevenue] = useState(0);
-  // const { name } = useSelector((state) => state.auth.user);
-  // const { requisitions } = useSelector((state) => state.requisition);
-  
-  // const pendingReq = requisitions.find((req) => req.status === 'pending');
-  
-  // const today = new Date();
-  // const sevenDaysAgo = new Date();
-  // sevenDaysAgo.setDate(today.getDate() - 7);
+  const [data, setData] = useState([]);
+  const [orders, setOrders] = useState([]);
 
-  // const weeklyPurchases = purchases?.filter(purchase => {
-  //     const purchaseDate = new Date(purchase.purchaseDate);
-  //     return purchaseDate >= sevenDaysAgo && purchaseDate <= today;
-  // });
+  const API_ENDPOINTS = ['/trackcrop/all', '/trackfarm/all', '/trackequipment/all'];
 
-  // const cumulativeTotal = weeklyPurchases.reduce((total, purchase) => total + purchase.totalCost, 0);
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+          const allData = [];
+
+          for (const endpoint of API_ENDPOINTS) {
+            const { data: endpointData } = await auth.get(endpoint);
+
+            if (endpointData && Array.isArray(endpointData)) {
+              const recentData = endpointData.filter(item => {
+                const itemDate = new Date(item.createdAt);
+                return itemDate >= thirtyDaysAgo;
+              });
+              allData.push(...recentData);
+            }
+          }
+
+          setData(allData);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      };
+  
+      fetchData();
+    }, []);
 
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   const fetchWeeklyRevenue = async () => {
-  //     try {
-  //       const { data } = await auth.get('/sales/weekly-revenue');
-  //       setWeeklyRevenue(data);
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   }
-  //   fetchWeeklyRevenue();
-  // }, []);
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const { data } = await auth.get('/orders');
+        console.log("Orders Data:", data);
+
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        let revenue = 0;
+        if (data && Array.isArray(data)) {
+          data.forEach(order => {
+            if (order.status === 'paid') {
+              const orderDate = new Date(order.createdAt);
+              if (orderDate >= thirtyDaysAgo) {
+                revenue += order.totalAmount;
+              }
+            }
+          });
+        }
+
+      setOrders(revenue);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  };
+    fetchOrders();
+  }, []);
 
   // Show today's date
   const todayDate = () => {
@@ -61,7 +94,7 @@ const AdminDashboard = () => {
       transition={{ delay: 0.1 }}
     >
       <p className="text-gray-500 text-center mt-3 p-5">Today is {todayDate()}</p>
-      <Top title={`Good day, ${name}! 👋`} text="Welcome to the admin dashboard" />
+      <Top title="Good day, 👋" text="Welcome to the admin dashboard" />
       <section className="">
         <div className="action-nav flex justify-around items-center">
           <motion.article
@@ -72,7 +105,7 @@ const AdminDashboard = () => {
           >
             <div className="flex flex-col gap-2 p-3">
               <h2 className="text-3xl font-extrabold">{users?.length}</h2>
-              <span className="text-gray-500">Total Employees</span>
+              <span className="text-gray-500">Total Users</span>
             </div>
             <div className="flex flex-col bg-[#B3E870] rounded-full p-3 gap-2">
               <MdPeopleAlt className="text-ek-gray" />
@@ -84,10 +117,10 @@ const AdminDashboard = () => {
             transition={{ type: 'spring', stiffness: 60 }}
             className="back flex items-center gap-4 bg-white p-3 rounded-lg shadow-lg"
           >
-            {/* <div className="flex flex-col gap-2 p-3">
-              <h2 className="text-3xl font-extrabold">{`₦${weeklyRevenue?.totalRevenue?.toLocaleString()}`}</h2>
-              <span className="text-gray-500">Total Daily Revenue</span>
-            </div> */}
+            <div className="flex flex-col gap-2 p-3">
+              <h2 className="text-3xl font-extrabold">{`₦${orders.toLocaleString()}`}</h2>
+              <span className="text-gray-500">Total Revenue (30 Days)</span>
+            </div>
             <div className="flex flex-col bg-[#B3E870] rounded-full p-3 gap-2">
               <FaMoneyBills className="text-ek-gray" />
             </div>
@@ -98,24 +131,10 @@ const AdminDashboard = () => {
             transition={{ type: 'spring', stiffness: 60 }}
             className="back flex items-center gap-4 bg-white p-3 rounded-lg shadow-lg"
           >
-            {/* <div className="flex flex-col gap-2 p-3">
-              <h2 className="text-3xl font-extrabold">{`₦${cumulativeTotal?.toLocaleString()}`}</h2>
-              <span className="text-gray-500">Total Weekly Purchases</span>
-            </div> */}
-            <div className="flex flex-col bg-[#B3E870] rounded-full p-3 gap-2">
-              <MdLocalGroceryStore className="text-ek-gray" />
+            <div className="flex flex-col gap-2 p-3">
+              <h2 className="text-3xl font-extrabold">{data?.length || 0}</h2>
+              <span className="text-gray-500">Total Request (30 Days)</span>
             </div>
-          </motion.article>
-          <motion.article
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            transition={{ type: 'spring', stiffness: 60 }}
-            className="back flex items-center gap-4 bg-white p-3 rounded-lg shadow-lg"
-          >
-            {/* <div className="flex flex-col gap-2 p-3">
-              <h2 className="text-3xl font-extrabold">{pendingReq?.length || 0}</h2>
-              <span className="text-gray-500">Pending Requisitions</span>
-            </div> */}
             <div className="flex flex-col bg-[#B3E870] rounded-full p-3 gap-2">
               <FaRectangleList className="text-ek-gray" />
             </div>

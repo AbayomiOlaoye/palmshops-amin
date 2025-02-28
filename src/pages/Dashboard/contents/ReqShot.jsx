@@ -11,13 +11,11 @@ const PalmSchool = () => {
   const dispatch = useDispatch();
   const [courseData, setCourseData] = useState([]);
 
-  console.log(courses[0]);
-
   useEffect(() => {
     dispatch(fetchUsers());
     dispatch(fetchCourses());
     setCourseData(courses);
-  }, [dispatch]);
+  }, [dispatch, courses.length]);
 
   const coursesWithExtraData = courseData?.map((course, index) => {
     const enrolledStudents = users?.filter(user =>
