@@ -55,7 +55,6 @@ const AdminDashboard = () => {
     const fetchOrders = async () => {
       try {
         const { data } = await auth.get('/orders');
-        console.log("Orders Data:", data);
 
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

@@ -1,8 +1,10 @@
-import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
+import { useDispatch } from 'react-redux';
+import { MdLogout } from "react-icons/md";
+import { signOut } from '../../redux/reducer/authActions';
 
 const Top = ({ title, text }) => {
-  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
   return (
     <article className="flex h-28 justify-between px-5">
@@ -11,17 +13,7 @@ const Top = ({ title, text }) => {
         <p className="text-ek-gray text-sm">{text}</p>
       </div>
       <div className="notification">
-        <div className="flex flex-col">
-          <img
-            src={user?.image}
-            alt="avatar"
-            className="h-[50px] w-[50px] rounded-full object-cover"
-          />
-          <article className="flex flex-col">
-            <span className="font-semibold">{user?.name}</span>
-            <span className="text-ek-gray text-sm">{user?.jobTitle}</span>
-          </article>
-        </div>
+      <MdLogout title='Log out' className="cursor-pointer text-2xl text-ek-deep" onClick={() => dispatch(signOut())} />
       </div>
     </article>
   );
