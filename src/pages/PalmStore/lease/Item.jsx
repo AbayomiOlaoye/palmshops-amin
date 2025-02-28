@@ -81,7 +81,7 @@ const ItemCrop = () => {
       exit={{ opacity: 0, x: '100%' }}
       transition={{ delay: 0.1 }}
     >
-      <Top title="HR" text="Manage stock Information" />
+      <Top title="Palm Store" text="Managing and Monitoring Sales" />
       <section className="user">
         <div className="action-nav flex justify-between items-center">
           <motion.article
