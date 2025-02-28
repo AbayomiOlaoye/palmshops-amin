@@ -21,18 +21,18 @@ const Overview = () => {
 
   const coursesWithExtraData = courseData?.map((course, index) => {
     const enrolledStudents = users?.filter(user =>
-      user.enrolledCourses?.some(enrollment => enrollment.courseId?._id === course._id)
+      user?.enrolledCourses?.some(enrollment => enrollment?.courseId?._id === course?._id)
     ).length;
   
-    const avgRating = course.feedback.reduce((sum, fb) => sum + fb.rating, 0) / 
-      (course.feedback.length || 1);
+    const avgRating = course?.feedback.reduce((sum, fb) => sum + fb?.rating, 0) / 
+      (course?.feedback?.length || 1);
   
-    const rateCount = course.feedback.length;
+    const rateCount = course?.feedback?.length;
   
     return {
       ...course,
       id: index + 1,
-      modulesCount: course.modules?.length || 0,
+      modulesCount: course?.modules?.length || 0,
       enrolledStudents,
       avgRating: avgRating.toFixed(1),
       rateCount,
@@ -50,31 +50,31 @@ const Overview = () => {
       field: "title",
       headerName: "Course Title",
       width: 250,
-      renderCell: (params) => <span>{params.row.title}</span>,
+      renderCell: (params) => <span>{params.row?.title}</span>,
     },
     {
       field: "modulesCount",
       headerName: "Modules",
       width: 100,
-      renderCell: (params) => <span>{params.row.modulesCount}</span>,
+      renderCell: (params) => <span>{params.row?.modulesCount}</span>,
     },
     {
       field: "enrolledStudents",
       headerName: "Enrolled Students",
       width: 150,
-      renderCell: (params) => <span>{params.row.enrolledStudents}</span>,
+      renderCell: (params) => <span>{params.row?.enrolledStudents}</span>,
     },
     {
       field: "avgRating",
       headerName: "Average Rating",
       width: 130,
-      renderCell: (params) => <span>{params.row.avgRating}</span>,
+      renderCell: (params) => <span>{params.row?.avgRating}</span>,
     },
     {
       field: "rateCount",
       headerName: "Rate Count",
       width: 100,
-      renderCell: (params) => <span>{params.row.rateCount}</span>,
+      renderCell: (params) => <span>{params.row?.rateCount}</span>,
     },
     {
       field: "action",
@@ -83,13 +83,13 @@ const Overview = () => {
       renderCell: (params) => (
         <div className="flex gap-4 items-center justify-center h-30 pt-1">
           <Link
-            to={`/courses/info/${params.row._id}`}
+            to={`/courses/info/${params.row?._id}`}
             className="bg-ek-green text-white px-2 h-[28px] hover:bg-opacity-75 transition-all flex items-center rounded"
           >
             <button className="userListEdit">View</button>
           </Link>
           <button
-            onClick={() => handleDelete(params.row._id)}
+            onClick={() => handleDelete(params.row?._id)}
             className="bg-ek-red text-white px-2 h-[28px] hover:bg-opacity-75 transition-all flex items-center rounded"
           >
             Delete

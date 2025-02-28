@@ -1,98 +1,96 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import { motion } from "framer-motion";
-import { DataGrid } from '@mui/x-data-grid';
-import { fetchRequisitions } from '../../../redux/reducer/requisitionAction';
+import { DataGrid } from "@mui/x-data-grid";
+import { fetchCourses } from "../../../redux/reducer/courseActions";
+import { fetchUsers } from "../../../redux/reducer/authActions";
 
-const ReqList = () => {
-  const { requisitions } = useSelector((state) => state.requisition);
-  const sortReq = requisitions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  const ReqWithSerial = requisitions && requisitions .length > 0 
-  ? sortReq.map((staff, index) => {
-    return { ...staff, id: index + 1 };
-  })
-  : [];
-
+const PalmSchool = () => {
+  const { courses } = useSelector((state) => state?.courses);
+  const { users } = useSelector((state) => state?.auth);
   const dispatch = useDispatch();
+  const courseData = useState(courses || []);
+
+  console.log(courses[0]);
 
   useEffect(() => {
-    dispatch(fetchRequisitions());
+    dispatch(fetchUsers());
+    dispatch(fetchCourses());
   }, [dispatch]);
 
-  const getDate = (order) => {
-    const date = new Date(order);
-    return `${date.getDate()} - ${date.getMonth() + 1} - ${date.getFullYear()}`;
-  };
+  const coursesWithExtraData = courseData?.map((course, index) => {
+    const enrolledStudents = users?.filter(user =>
+      user?.enrolledCourses?.some(enrollment => enrollment?.courseId?._id === course._id)
+    )?.length;
+  
+    const avgRating = course?.feedback?.reduce((sum, fb) => sum + fb?.rating, 0) / 
+      (course?.feedback?.length || 1);
+  
+    const rateCount = course?.feedback?.length;
+  
+    return {
+      ...course,
+      id: index + 1,
+      modulesCount: course?.modules?.length || 0,
+      enrolledStudents,
+      avgRating: avgRating.toFixed(1),
+      rateCount,
+    };
+  });
 
   const columns = [
     { field: "id", headerName: "S/N", width: 50 },
     {
-      field: "createdAt",
-      headerName: "Date",
-      width: 120,
-      renderCell: (params) => {
-        return (
-          <div>
-            <span>{getDate(params.row.createdAt)}</span>
-          </div>
-        );
-      }
+      field: "title",
+      headerName: "Course Title",
+      width: 250,
+      renderCell: (params) => <span>{params.row?.title}</span>,
     },
     {
-      field: "requestId",
-      headerName: "Request ID",
-      width: 100,
-    },
-    {
-      field: "amountRequested",
-      headerName: "Amount Requested (₦)",
+      field: "enrolledStudents",
+      headerName: "Enrolled Students",
       width: 150,
-      renderCell: (params) => {
-        const totalCost = params.row?.items?.reduce((sum, item) => {
-          return sum + item.quantity * item.rate;
-        }, 0);
-        return (
-          <div className='flex gap-4 items-center h-30'>
-            <span>{totalCost.toLocaleString()}</span>
-          </div>
-        );
-      }
+      renderCell: (params) => <span>{params.row?.enrolledStudents}</span>,
     },
     {
-      field: "status",
-      headerName: "Status",
-      width: 150,
-      renderCell: (params) => {
-        return (
-          <div>
-            <span
-              className={`${params.row?.status === 'pending' && 'bg-ek-gray'} ${params.row?.status=== 'approved' && 'bg-ek-green text-ek-deep'} ${params.row?.status === 'rejected' && 'bg-red-500 text-white'} text-white h-[18px] mt-2 transition-all w-fit p-2 flex items-center rounded-3xl`}
-            >
-              {params.row?.status}
-            </span>
-          </div>
-        );
-      }
+      field: "feedback",
+      headerName: "Feedback",
+      width: 50,
+      renderCell: (params) => <span>{params.row?.feedback?.length}</span>,
     },
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: '-20%' }}
+      initial={{ opacity: 0, x: "-20%" }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: '100%' }}
+      exit={{ opacity: 0, x: "100%" }}
       transition={{ delay: 0.1 }}
-      className="max-w-full h-[300px]"
+      className="max-w-full"
     >
-      <h1 className="text-2xl font-semibold text-ek-dark">Requisitions</h1>
-      <DataGrid
-        rows={ReqWithSerial}
-        columns={columns}
-        pageSize={10}
-        rowHeight={38}
-      />
+      <section>
+        <div className="action-nav flex justify-between items-center">
+          <article className="other-actions flex gap-2">
+            <Link
+              to="/courses/new"
+              className="border-2 rounded-lg px-3 py-2 hover:bg-ek-deep hover:text-ek-green"
+            >
+              New Course
+            </Link>
+          </article>
+        </div>
+        <article className="staff-list min-h-[80vh] mt-3 rounded-xl shadow-lg bg-white py-10 p-8">
+          <DataGrid
+            rows={coursesWithExtraData}
+            columns={columns}
+            pageSize={10}
+            rowHeight={38}
+          />
+        </article>
+      </section>
     </motion.div>
-  )
-}
+  );
+};
 
-export default ReqList;
+export default PalmSchool;

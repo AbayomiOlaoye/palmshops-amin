@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { deleteCourse } from '../../redux/reducer/courseActions';
 
 const CourseInfo = () => {
-  const { courses } = useSelector((state) => state.courses);
+  const { courses } = useSelector((state) => state?.courses);
 
   const [courseData, setCourseData] = useState(courses || []);
   const { id } = useParams();
