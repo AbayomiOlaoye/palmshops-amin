@@ -135,7 +135,7 @@ const Orders = () => {
       transition={{ delay: 0.1 }}
       className="max-w-full overflow-auto"
     >
-      <Top title="HR" text="Manage Staff Information" />
+      <Top title="Palm Store" text="Managing and Monitoring Sales" />
       <section className="">
         <div className="action-nav flex justify-between items-center">
           <motion.article

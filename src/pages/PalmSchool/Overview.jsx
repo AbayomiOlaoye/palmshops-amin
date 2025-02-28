@@ -111,7 +111,7 @@ const Overview = () => {
       transition={{ delay: 0.1 }}
       className="max-w-full"
     >
-      <Top title="Courses" text="Manage and Monitor Course Details" />
+      <Top title="Palm School" text="Manage and Monitor Course Details" />
       <section>
         <div className="action-nav flex justify-between items-center">
           <motion.article
