@@ -123,7 +123,7 @@ const AllProducts = () => {
       transition={{ delay: 0.1 }}
       className="max-w-full"
     >
-      <Top title="Palm Store" text="Manage Staff Information" />
+      <Top title="Palm Store" text="Managing and Monitoring Sales" />
       <section className="">
         <div className="action-nav flex justify-between items-center">
           <motion.article

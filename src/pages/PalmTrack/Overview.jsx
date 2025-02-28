@@ -170,7 +170,7 @@ const OverviewTrack = () => {
       transition={{ delay: 0.1 }}
       className="max-w-full"
     >
-      <Top title="Production" text="Manage and Monitor Production Details" />
+      <Top title="Palm Track" text="Manage and Monitor Farmers' Inventories" />
       <section className="">
         <div className="action-nav flex justify-between items-center">
           <motion.article

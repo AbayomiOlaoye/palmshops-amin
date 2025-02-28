@@ -52,7 +52,7 @@ const StockInfo = () => {
       exit={{ opacity: 0, x: '100%' }}
       transition={{ delay: 0.1 }}
     >
-      <Top title="HR" text="Manage stock Information" />
+      <Top title="Palm Track" text="Manage and Monitor Farmers' Inventories" />
       <section className="user">
         <div className="action-nav flex justify-between items-center">
           <motion.article

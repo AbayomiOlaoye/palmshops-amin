@@ -92,7 +92,7 @@ const SubscriptionList = () => {
       transition={{ delay: 0.1 }}
       className="max-w-full overflow-auto"
     >
-      <Top title="HR" text="Manage Staff Information" />
+      <Top title="Lead" text="Collecting and Analyzing Leads" />
       <section className="">
         <div className="action-nav flex justify-between items-center">
           <motion.article

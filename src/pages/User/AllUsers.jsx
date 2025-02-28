@@ -86,7 +86,7 @@ const AllStaff = () => {
       transition={{ delay: 0.1 }}
       className="max-w-full"
     >
-      <Top title="HR" text="Manage Staff Information" />
+      <Top title="Users" text="Manage Users' Information" />
       <section className="">
         <div className="action-nav flex justify-between items-center">
           <motion.article
