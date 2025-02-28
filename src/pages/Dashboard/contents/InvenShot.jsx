@@ -1,172 +1,152 @@
-/* eslint-disable react/prop-types */
-import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { motion } from "framer-motion";
-import { PieChart, Pie, Legend, Cell, ResponsiveContainer, Label } from "recharts";
-import { fetchInventories } from "../../../redux/reducer/inventoryAction";
+import { DataGrid } from '@mui/x-data-grid';
+import  { fetchAllHarvests } from '../../../redux/reducer/harvestAction';
+import { fetchAllFarmStock } from '../../../redux/reducer/farmAction';
 
-const Inventory = () => {
-  const { inventories = [] } = useSelector((state) => state?.inventory || {});
-  const { warehouses = {} } = useSelector((state) => state?.warehouse || {});
-
+const PalmTrack = () => {
   const dispatch = useDispatch();
+  const { harvested } = useSelector((state) => state?.harvest);
+  const { farms } = useSelector((state) => state?.farm);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const inventories = [...farms, ...harvested];
+
+  const ReqWithSerial = [...(inventories || [])]
+    .sort((a, b) => new Date(b?.createdAt) - new Date(a?.createdAt))
+    .map((item, index) => ({
+      ...item,
+      id: index + 1,
+      product: item?.cropPlanted || item?.productName,
+      qty: item?.expectedYield || item?.availableQty,
+      unit: item?.yieldUnit || item?.unit,
+      type: item?.cropPlanted ? 'farm' : 'harvest',
+      totalAmount: (item?.expectedYield * item?.pricePerUnit) || (item?.availableQty * item?.pricePerUnit),
+  }));
 
   useEffect(() => {
-    dispatch(fetchInventories());
+    dispatch(fetchAllFarmStock());
+    dispatch(fetchAllHarvests());
+    setSelectedProduct(ReqWithSerial);
   }, [dispatch]);
 
-  // Create a copy of warehouses to avoid mutation
-  const warehouseSet = { ...warehouses };
 
-  const formattedData = inventories.map((item) => {
-    const product = {
-      itemName: item?.itemName,
-      itemCode: item?.itemCode,
-    };
-
-    item.locations.forEach((location) => {
-      const warehouseName = location?.warehouseId?.name;
-      warehouseSet[warehouseName] = true; // Record warehouse presence
-      product[warehouseName] = location?.closingBalance || 0;
-    });
-
-    return product;
-  });
-
-  const warehouseNames = Object.keys(warehouseSet);
-
-  const updatedFormattedData = formattedData.map((product) => {
-    const updatedProduct = { ...product };
-
-    warehouseNames.forEach((warehouse) => {
-      if (!(warehouse in updatedProduct)) {
-        updatedProduct[warehouse] = 0;
-      }
-    });
-
-    return updatedProduct;
-  });
-
-  const targetProducts = ["Rice", "Stopper Solution", "Heavy Weight", "Optimum Booster"];
-
-  const filteredProducts = updatedFormattedData.filter((product) =>
-    targetProducts.includes(product?.itemName)
-  );
-
-  const totalInventory = filteredProducts.map((product) => {
-    const total = warehouseNames.reduce((sum, warehouse) => {
-      return sum + (product[warehouse] || 0);
-    }, 0);
-
-    return {
-      name: product?.itemName,
-      total,
-    };
-  });
-
-  const total = totalInventory.reduce((sum, product) => sum + product?.total, 0);
-
-  const COLORS = ["#395219", "#80b838", "#b3e870", "#0a192f"];
-
-  const Bullet = ({ backgroundColor, size }) => (
-    <div
-      className="CirecleBullet"
-      style={{
-        backgroundColor,
-        width: size,
-        height: size,
-      }}
-    ></div>
-  );
-
-  const CustomizedLegend = ({ payload }) => (
-    <ul className="LegendList">
-      {payload.map((entry, index) => (
-        <li key={`item-${index}`}>
-          <div className="BulletLabel flex">
-            <Bullet backgroundColor={entry?.payload?.fill} size="15px" />
-            <div className="BulletLabelText flex">{entry?.value.toLocaleString()}</div>
-          </div>
-          <div style={{ marginLeft: "20px" }}>{entry?.payload?.value}</div>
-        </li>
-      ))}
-    </ul>
-  );
-
-  const CustomLabel = ({ viewBox, labelText, value }) => {
-    const { cx, cy } = viewBox;
-    return (
-      <g>
-        <text
-          x={cx}
-          y={cy}
-          className="recharts-text recharts-label"
-          textAnchor="middle"
-          dominantBaseline="central"
-          alignmentBaseline="middle"
-          fontSize="15"
-        >
-          {labelText}
-        </text>
-        <text
-          x={cx}
-          y={cy + 25}
-          className="recharts-text recharts-label"
-          textAnchor="middle"
-          dominantBaseline="central"
-          alignmentBaseline="middle"
-          fill="#0a192f"
-          fontSize="26"
-          fontWeight="600"
-        >
-          {value}
-        </text>
-      </g>
-    );
+  const filterTrack = (stock) => {
+    if (stock === 'farm') {
+      const farmTrack = ReqWithSerial.filter((prod) => prod?.type === 'farm');
+      setSelectedProduct(farmTrack);
+    } else {
+      const harvestTrack = ReqWithSerial.filter((prod) => prod?.type === 'harvest');
+      setSelectedProduct(harvestTrack);
+    }
   };
+
+  const rice = [
+    { field: "id", headerName: "S/N", width: 50 },
+    {
+      field: "product",
+      headerName: "Product",
+      width: 120,
+      renderCell: (params) => {
+        return (
+          <div className=''>
+            <span className="capitalize">{params.row?.product}</span>
+          </div>
+        );
+      }
+    },
+    {
+      field: "name",
+      headerName: "Farmer",
+      width: 180,
+      renderCell: (params) => {
+        return (
+          <div>
+            <span className='capitalize'>
+              {params.row?.userId.name}
+            </span>
+          </div>
+        );
+      }
+    },
+    {
+      field: "pricePerUnit",
+      headerName: "Price/Unit",
+      width: 100,
+      renderCell: (params) => {
+        return (
+          <div className=''>
+            <span>{`₦${params.row?.pricePerUnit.toLocaleString()}/${params.row?.unit}`}</span>
+          </div>
+        );
+      }
+    },
+    {
+      field: "qty",
+      headerName: "Quantity",
+      width: 100,
+      renderCell: (params) => {
+        return (
+          <div className=''>
+            <span>{params.row?.qty.toLocaleString()}</span>
+          </div>
+        );
+      }
+    },
+    {
+      field: "totalAmount",
+      headerName: "Total",
+      width: 150,
+      renderCell: (params) => {
+        return (
+          <div className=''>
+            <span>{`₦${params.row?.totalAmount.toLocaleString()}`}</span>
+          </div>
+        );
+      }
+    }
+  ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: "-20%" }}
+      initial={{ opacity: 0, x: '-20%' }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: "100%" }}
+      exit={{ opacity: 0, x: '100%' }}
       transition={{ delay: 0.1 }}
-      className="max-w-full border rounded-md p-4 mt-4"
+      className="max-w-full min-h-[350px] h-[350px] overflow-scroll"
     >
-      <h1 className="text-2xl font-semibold">Inventory</h1>
-      <div style={{ width: "100%", height: 350 }}>
-        <ResponsiveContainer>
-          <PieChart>
-            <Pie
-              data={totalInventory}
-              dataKey="total"
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={90}
-            >
-              {totalInventory.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-              <Label
-                content={
-                  <CustomLabel
-                    labelText="Finished Goods"
-                    value={total.toLocaleString()}
-                  />
-                }
-                position="center"
-              />
-            </Pie>
-            <Legend layout="horizontal" align="center" verticalAlign="bottom" content={<CustomizedLegend />} />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
+      <section className="flex justify-between items-center mb-3">
+        <h2 className="text-2xl font-semibold text-ek-black mb-2">Palm Track (Orders)</h2>
+        <article className="other-actions flex gap-2 mb-3">
+          <button
+            onClick={() => setSelectedProduct(ReqWithSerial)}
+            className="border-2 rounded-lg px-3 py-2 hover:bg-ek-light hover:text-ek-black focus:bg-ek-green focus:text-ek-white"
+          >
+            All
+          </button>
+          <button
+            onClick={() => filterTrack('farm')}
+            className="border-2 rounded-lg px-3 py-2 hover:bg-ek-light hover:text-ek-black focus:bg-ek-green focus:text-ek-white"
+          >
+            On Farm
+          </button>
+          <button
+            onClick={() => filterTrack('harvest')}
+            className="border-2 rounded-lg px-3 py-2 hover:bg-ek-light hover:text-ek-black focus:bg-ek-green focus:text-ek-white"
+          >
+            Harvested
+          </button>
+        </article>
+      </section>
+      <DataGrid
+        rows={selectedProduct}
+        columns={rice}
+        pageSize={10}
+        rowHeight={38}
+      />
     </motion.div>
-  );
-};
+  )
+}
 
-export default Inventory;
+export default PalmTrack;

@@ -7,6 +7,7 @@ import Top from '../Dashboard/Top';
 import { fetchUsers } from '../../redux/reducer/authActions';
 // import { auth } from '../../apiCall';
 import PalmOrders from './contents/ProShot';
+import PalmTrack from './contents/InvenShot';
 // import Records from './contents/ProShot';
 // import Overview from './contents/StockShot';
 // import Inventory from './contents/InvenShot';
@@ -125,6 +126,7 @@ const AdminDashboard = () => {
         </div>
         <article className="staff-list min-h-[80vh] mt-3 rounded-xl grid grid-cols-2 gap-6 shadow-lg bg-white py-10 p-8">
           <PalmOrders />
+          <PalmTrack />
         </article>
       </section>
     </motion.div>

@@ -78,7 +78,7 @@ const PalmOrders = () => {
       transition={{ delay: 0.1 }}
       className="max-w-full overflow-scroll h-[350px]"
     >
-      <h2 className="text-2xl font-semibold text-ek-dark">Palm Store (Orders)</h2>
+      <h2 className="text-2xl font-semibold text-ek-black mb-2">Palm Store (Orders)</h2>
       {!loading ? (
         <DataGrid
           rows={ordersWithSerial}
