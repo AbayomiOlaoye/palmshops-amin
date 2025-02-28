@@ -63,7 +63,7 @@ const AdminDashboard = () => {
       transition={{ delay: 0.1 }}
     >
       <p className="text-gray-500 text-center mt-3 p-5">Today is {todayDate()}</p>
-      <Top title={`Good morning, ${name}! 👋`} text="Welcome to the admin dashboard" />
+      <Top title={`Good day, ${name}! 👋`} text="Welcome to the admin dashboard" />
       <section className="">
         <div className="action-nav flex justify-around items-center">
           <motion.article

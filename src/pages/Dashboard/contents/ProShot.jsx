@@ -76,18 +76,17 @@ const PalmOrders = () => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: '100%' }}
       transition={{ delay: 0.1 }}
-      className="max-w-full overflow-scroll h-[300px]"
+      className="max-w-full overflow-scroll h-[350px]"
     >
-      <section className="">
-        {!loading ? (
-          <DataGrid
-            rows={ordersWithSerial}
-            columns={columns}
-            pageSize={10}
-            rowHeight={38}
-          />
-        ) : (<p>Loading data...</p>)}
-      </section>
+      <h2 className="text-2xl font-semibold text-ek-dark">Palm Store (Orders)</h2>
+      {!loading ? (
+        <DataGrid
+          rows={ordersWithSerial}
+          columns={columns}
+          pageSize={10}
+          rowHeight={38}
+        />
+      ) : (<p>Loading data...</p>)}
     </motion.section>
   )
 }
