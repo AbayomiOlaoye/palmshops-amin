@@ -1,758 +1,493 @@
-// import { useState } from "react";
-// import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
-// import { useNavigate } from "react-router-dom";
-// import * as Yup from "yup";
-// import { ImSpinner3 } from 'react-icons/im';
-// import { useSelector, useDispatch } from "react-redux";
-// import { MdArrowBack } from "react-icons/md";
-// import { motion } from "framer-motion";
-// import Top from "../Dashboard/Top";
-// import { addProduction, fetchProductions } from "../../redux/reducer/productionAction";
-// // import { toast } from "react-toastify";
+import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { MdArrowBack } from 'react-icons/md';
+import { motion } from 'framer-motion';
+import { auth } from '../../apiCall';
+import { toast } from 'react-toastify';
 
-// // const options = {
-// //   theme: 'light',
-// //   position: 'top-right',
-// //   hideProgressBar: false,
-// //   closeOnClick: true,                                                                     
-// // }
-
-// const NewRecord = () => {
-//   const { employees } = useSelector((state) => state.employee);
-//   const { products } = useSelector((state) => state.production);
-//   const { inventories } = useSelector((state) => state.inventory);
-
-//   const rawMaterialsList = inventories.filter((item) => item.itemType === "raw material") || [];
-
-//   const navigate = useNavigate();
-//   const dispatch = useDispatch();
-//     const [loading, setLoading] = useState(false);
-//     const handleGoBack = () => {
-//       window.history.back();
-//     }
-//     console.log({inventories});
-
-//     const initialValues = {
-//       confirmedBy: "",
-//       process: "",
-//       rawMaterials: [
-//         { material: "", quantity: "", unit: "", issuedBy: "" },
-//       ],
-//       productionType: "",
-//       headOfOperations: "",
-//       unit: "",
-//       teamMembers: [
-//         { employeeId: "" },
-//       ]
-//     };
-  
-//     const validationSchema = Yup.object({
-//       confirmedBy: Yup.string()
-//       .required('Inspecting officer is required')
-//       .test(
-//         'is-not-team-member',
-//         'The inspector cannot be a team member',
-//         function (value) {
-//           const { teamMembers } = this.parent;
-//           return !teamMembers.some(member => member.employeeId === value);
-//         }
-//       ),
-//       productionType: Yup.string().required("Product type is required"),
-//       process: Yup.string().when('productionType', (productionType, schema) => {
-//         if (productionType[0] === '677cdca273ed278fd2d5a181') {
-//           return schema.required('Process is required');
-//         }
-//         return schema.notRequired();
-//       }),
-//       headOfOperations: Yup.string().required("Head of operations is required"),
-//       rawMaterials: Yup.array().of(
-//         Yup.object().shape({
-//           material: Yup.string().required('Material is required'),
-//           quantity: Yup.number()
-//             .required('Quantity is required')
-//             .test('maxQuantity', 'Quantity exceeds available balance', function (value) {
-//               const { material } = this.parent;
-//               const selectedMaterial = rawMaterialsList.find(item => item._id === material);
-//               return selectedMaterial ? value <= selectedMaterial.locations[0]?.closingBalance : true;
-//             }),
-//           unit: Yup.string().required('Unit is required'),
-//           issuedBy: Yup.string().required('Issuer is required'),
-//         })
-//       ),
-//       unit: Yup.string().required("Unit is required"),
-//       teamMembers: Yup.array().of(
-//         Yup.object({
-//           employeeId: Yup.string().required('Employee is required'),
-//         }),
-//       )
-//     });
-  
-//     const onSubmit = (values) => {
-//       setLoading(true);
-//       console.log(values);
-//       const res = dispatch(addProduction(values));
-//       dispatch(fetchProductions());
-//       if (res) {
-//         setLoading(false);
-//         navigate("/production");
-//       }
-//       setLoading(false);
-//     };
-  
-//     return (
-//       <motion.section className="max-w-full"
-//         initial={{ opacity: 0, x: '-20%' }}
-//         animate={{ opacity: 1, x: 0 }}
-//         exit={{ opacity: 0, x: '100%' }}
-//         transition={{ delay: 0.1 }}
-//       >
-//         <Top title="Production" text="Manage and Monitor Production Details" />
-//         <section className="user">
-//           <div className="action-nav flex justify-between items-center">
-//             <motion.article
-//               initial={{ x: '100%' }}
-//               animate={{ x: 0 }}
-//               transition={{ type: 'spring', stiffness: 60 }}
-//               className="back flex items-center gap-4 text-2xl"
-//             >
-//               <MdArrowBack className="cursor-pointer" onClick={handleGoBack} />
-//               <span className="font-medium">New Production Record</span>
-//             </motion.article>
-//           </div>
-//           <div className="userContainer grid lg:grid-cols-2 w-full mt-3 rounded-xl shadow-lg bg-white py-10 p-8">
-//           <Formik
-//             initialValues={initialValues}
-//             validationSchema={validationSchema}
-//             onSubmit={onSubmit}
-//             validateOnChange={true}
-//             validateOnBlur={true}
-//           >
-//             {({ values }) => (
-//               <Form>
-//               <div className="flex flex-col relative mb-5">
-//                   <label className="font-semibold">Product Type:</label>
-//                   <Field
-//                     name="productionType"
-//                     as="select"
-//                     className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                   >
-//                     <option value="">Choose a product</option>
-//                     {products && products.length > 0 ? (
-//                       products.map((pro) => (
-//                         <option
-//                           key={pro._id}
-//                           value={pro._id}
-//                           className="capitalize"
-//                           label={pro.product}
-//                         />
-//                       ))
-//                     ) : (
-//                       <option disabled>Loading products...</option>
-//                     )}
-//                   </Field>
-//                   <ErrorMessage
-//                     name="productionType"
-//                     component="div"
-//                     className="text-red-600 text-sm absolute top-16"
-//                   />
-//                 </div>
-//                 {values.productionType === "677cdca273ed278fd2d5a181" && (
-//                   <div className="flex flex-col relative mb-5">
-//                     <label className="font-semibold">Process:</label>
-//                     <Field
-//                       name="process"
-//                       as="select"
-//                       className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                       >
-//                       <option value="">Choose a process</option>
-//                       <option value="parboiling" label="Parboiling" />
-//                       <option value="drying" label="Drying" />
-//                       <option value="milling" label="Milling" />
-//                       <option value="sealing" label="Bagging/Sealing" />
-//                     </Field>
-//                     <ErrorMessage
-//                       name="process"
-//                       component="div"
-//                       className="text-red-600 text-sm absolute top-16"
-//                     />
-//                   </div>
-//                 )}
-//                 <div className="flex flex-col relative mb-5">
-//                   <label className="font-semibold">Inspecting Officer:</label>
-//                   <Field
-//                     name="confirmedBy"
-//                     as="select"
-//                     className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                   >
-//                     <option value="">Who confirmed the units produced?</option>
-//                     {employees && employees.length > 0 ? (
-//                       employees.map((user) => (
-//                         <option
-//                           key={user._id}
-//                           value={user._id}
-//                           label={`${user.firstName} ${user.lastName} (${user.jobTitle})`}
-//                         />
-//                       ))
-//                     ) : (
-//                       <option disabled>Loading employees...</option>
-//                     )}
-//                   </Field>
-//                   <ErrorMessage
-//                     name="confirmedBy"
-//                     component="div"
-//                     className="text-red-600 text-sm absolute top-16"
-//                   />
-//                 </div>
-//                 <div className="flex flex-col relative mb-5">
-//                   <label className="font-semibold">Head of Operation:</label>
-//                   <Field
-//                     name="headOfOperations"
-//                     as="select"
-//                     className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                   >
-//                     <option value="">Who confirmed the units produced?</option>
-//                     {employees && employees.length > 0 ? (
-//                       employees.map((user) => (
-//                         <option
-//                           key={user._id}
-//                           value={user._id}
-//                           label={`${user.firstName} ${user.lastName} (${user.jobTitle})`}
-//                         />
-//                       ))
-//                     ) : (
-//                       <option disabled>Loading employees...</option>
-//                     )}
-//                   </Field>
-//                   <ErrorMessage
-//                     name="headOfOperations"
-//                     component="div"
-//                     className="text-red-600 text-sm absolute top-16"
-//                   />
-//                 </div>
-//                 <div className="flex gap-5 mb-5">
-//                   <div className="flex flex-col relative mb-5">
-//                     <label className="font-semibold">Production Output:</label>
-//                     <Field
-//                       name="quantity"
-//                       type="number"
-//                       placeholder="Quantity produced"
-//                       className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                     />
-//                     <ErrorMessage
-//                       name="quantity"
-//                       component="div"
-//                       className="text-red-600 text-sm absolute top-16"
-//                     />
-//                   </div>
-//                   <div className="flex flex-col relative mb-5">
-//                     <label className="font-semibold">Production Unit:</label>
-//                     <Field
-//                       name="unit"
-//                       as="select"
-//                       className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                     >
-//                       <option value="">Select unit</option>
-//                       <option value="ltrs" label="Litres (ltrs)" />
-//                       <option value="kg" label="Kilograms (kg)" />
-//                       <option value="bags" label="Bags" />
-//                       <option value="pcs" label="Pieces (pcs)" />
-//                     </Field>
-//                     <ErrorMessage
-//                       name="unit"
-//                       component="div"
-//                       className="text-red-600 text-sm absolute top-16"
-//                     />
-//                   </div>
-//                 </div>
-  
-//                 <FieldArray name="rawMaterials">
-//                   {({ push, remove }) => (
-                    
-//                     <div>
-//                   {values.rawMaterials.map((_, index) => {
-//                     const selectedMaterial = rawMaterialsList.find(
-//                       item => item._id === values.rawMaterials[index].material
-//                     );
-
-//                     return (
-//                       <div
-//                         key={index}
-//                         className="grid grid-cols-2 items-center gap-6 mb-4 border-b pb-4"
-//                       >
-//                         <div className="flex flex-col relative">
-//                           <label className="font-semibold">Raw material:</label>
-//                           <Field
-//                             as="select"
-//                             name={`rawMaterials.${index}.material`}
-//                             className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                           >
-//                             <option value="" label="Select raw material" />
-//                             {rawMaterialsList.map(raw => (
-//                               <option
-//                                 key={raw._id}
-//                                 value={raw._id}
-//                                 label={`${raw.itemName} (${raw.unit})`}
-//                               />
-//                             ))}
-//                           </Field>
-//                           <ErrorMessage
-//                             name={`rawMaterials.${index}.material`}
-//                             component="div"
-//                             className="text-red-600 text-sm absolute top-16"
-//                           />
-//                         </div>
-//                         <div className="flex flex-col relative">
-//                           <label className="font-semibold">Quantity:</label>
-//                           <Field
-//                             name={`rawMaterials.${index}.quantity`}
-//                             type="number"
-//                             placeholder={`Max: ${
-//                               selectedMaterial?.locations[0]?.closingBalance || 0
-//                             }`}
-//                             className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                           />
-//                           <ErrorMessage
-//                             name={`rawMaterials.${index}.quantity`}
-//                             component="div"
-//                             className="text-red-600 text-sm absolute top-16"
-//                           />
-//                         </div>
-//                           <div className="flex flex-col relative">
-//                             <label className="font-semibold">Unit:</label>
-//                             <Field
-//                               as="select"
-//                               name={`rawMaterials.${index}.unit`}
-//                               className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                             >
-//                               <option value="" label="Select unit" />
-//                               <option value="ltrs" label="Litres (ltrs)" />
-//                               <option value="kg" label="Kilograms (kg)" />
-//                               <option value="bags" label="Bags" />
-//                               <option value="pcs" label="Pieces (pcs)" />
-//                             </Field>
-//                             <ErrorMessage
-//                               name={`rawMaterials.${index}.unit`}
-//                               component="div"
-//                               className="text-red-600 text-sm absolute top-16"
-//                             />
-//                           </div>
-//                           <div className="flex flex-col relative">
-//                             <label className="font-bold text-ek-deep">Issued By:</label>
-//                             <Field
-//                               name={`rawMaterials.${index}.issuedBy`}
-//                               as="select"
-//                               className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                             >
-//                               <option value="">Select Issuer</option>
-//                               {employees && employees.length > 0 ? (
-//                                 employees.map((user) => (
-//                                   <option
-//                                     key={user._id}
-//                                     value={user._id}
-//                                     label={`${user.firstName} ${user.lastName} (${user.jobTitle})`}
-//                                   />
-//                                 ))
-//                               ) : (
-//                                 <option disabled>Loading employees...</option>
-//                               )}
-//                             </Field>
-//                             <ErrorMessage
-//                               name={`rawMaterials.${index}.issuedBy`}
-//                               component="div"
-//                               className="text-red-600 text-sm absolute top-16"
-//                             />
-//                           </div>
-//                           <button
-//                             type="button"
-//                             onClick={() => remove(index)}
-//                             className="bg-ek-list text-white p-2 w-fit rounded hover:bg-red-600 opacity-60"
-//                           >
-//                             Remove
-//                           </button>
-//                         </div>
-//                       );
-//                       })}
-//                       <button
-//                         type="button"
-//                         className={`bg-ek-dark opacity-60 text-white p-2 rounded-md ${
-//                           values.rawMaterials.some(
-//                             (item) =>
-//                               !item.material ||
-//                               !item.quantity ||
-//                               !item.unit ||
-//                               !item.issuedBy
-//                           )
-//                             ? "opacity-50 cursor-not-allowed"
-//                             : "hover:bg-green-700"
-//                         }`}
-//                         onClick={() =>
-//                           push({
-//                             material: "",
-//                             quantity: "",
-//                             unit: "",
-//                             issuedBy: "",
-//                           })
-//                         }
-//                       >
-//                         Add raw material
-//                       </button>
-//                     </div>
-//                   )}
-//                 </FieldArray>
-
-//                 <FieldArray name="teamMembers">
-//                 {({ push, remove }) => (
-//                     <div>
-//                       <h2 className="font-bold mt-7">Production Team Members:</h2>
-//                       {values.teamMembers.map((_, index) => (
-//                         <div
-//                           key={index}
-//                           className="grid grid-cols-2 items-center gap-6 mb-4 border-b pb-4"
-//                         >
-//                           <div className="flex flex-col relative">
-//                             <Field
-//                               name={`teamMembers.${index}.employeeId`}
-//                               as="select"
-//                               className="bg-white border-2 rounded-md focus:outline-ek-green p-1 px-2"
-//                             >
-//                               <option value="">Select Team Staff</option>
-//                               {employees && employees.length > 0 ? (
-//                                 employees.map((user) => (
-//                                   <option
-//                                     key={user._id}
-//                                     value={user._id}
-//                                     label={`${user.firstName} ${user.lastName} (${user.jobTitle})`}
-//                                   />
-//                                 ))
-//                               ) : (
-//                                 <option disabled>Loading employees...</option>
-//                               )}
-//                             </Field>
-//                             <ErrorMessage
-//                               name={`teamMembers.${index}.employeeId`}
-//                               component="div"
-//                               className="text-red-600 text-sm absolute top-16"
-//                             />
-//                           </div>
-//                           <button
-//                             type="button"
-//                             onClick={() => remove(index)}
-//                             className="bg-ek-list text-white p-2 rounded w-fit hover:bg-red-600 opacity-60"
-//                           >
-//                             Remove
-//                           </button>
-//                         </div>
-//                       ))}
-//                       <button
-//                         type="button"
-//                         className={`bg-ek-dark opacity-60 text-white p-2 rounded-md ${
-//                           values.teamMembers.some((item) => !item.employeeId)
-//                             ? "opacity-50 cursor-not-allowed"
-//                             : "hover:bg-green-700"
-//                         }`}
-//                         onClick={() =>
-//                           push({
-//                             employeeId: "",
-//                           })
-//                         }
-//                       >
-//                         Add Team Member
-//                       </button>
-//                     </div>
-//                   )}
-//                 </FieldArray>
-
-//                 <button
-//                   type="submit"
-//                   className="bg-ek-deep text-white px-6 py-2 mt-6 rounded hover:bg-ek-green"
-//                 >
-//                  {loading ? <ImSpinner3 className="animate-spin text-lg" /> : 'Submit'}
-//                 </button>
-//               </Form>
-//             )}
-//           </Formik>
-//           </div>
-//         </section>
-//       </motion.section>
-//     );
-//   };
-
-// export default NewRecord;
-import { Formik, Field, Form, FieldArray } from "formik";
-import * as Yup from "yup";
-
-const validationSchema = Yup.object({
-  title: Yup.string().required("Course title is required"),
-  price: Yup.string().required("Price is required"),
-  level: Yup.string().required("Level is required"),
-  mode: Yup.string().required("Mode is required"),
-  description: Yup.string().required("Description is required"),
-  image: Yup.string().required("Course avatar is required"),
+const validationSchema = Yup.object().shape({
+  serial: Yup.number().required('Serial is required'),
+  id: Yup.string().required('ID is required'),
+  title: Yup.string().required('Title is required'),
+  description: Yup.string().required('Description is required'),
+  link: Yup.string().required('Link is required').url('Must be a valid URL'),
+  subtitle: Yup.string(),
+  image: Yup.string().required('Image is required').url('Must be a valid URL'),
+  price: Yup.string(),
+  poster: Yup.string(),
+  rating: Yup.number().min(1).max(5),
+  ratingCount: Yup.number().positive(),
+  level: Yup.string().oneOf(['beginner', 'intermediate', 'advanced']),
+  mode: Yup.string(),
+  duration: Yup.string().notRequired(),
   modules: Yup.array().of(
-    Yup.object({
-      subtopic: Yup.string().required("Module title is required"),
-      description: Yup.string().required("Module description is required"),
-      link: Yup.string().url("Invalid URL").required("Video link is required"),
-      img: Yup.string().required("Module avatar is required"),
+    Yup.object().shape({
+      id: Yup.string().required('ID is required'),
+      subtopic: Yup.string().required('Subtopic is required'),
+      description: Yup.string().required('Description is required'),
+      link: Yup.string().required('Link is required').url('Must be a valid URL'),
+      img: Yup.string().required('Image is required').url('Must be a valid URL'),
+      subtitle: Yup.string(),
+      poster: Yup.string(),
+      duration: Yup.number().notRequired(),
       assessments: Yup.array().of(
-        Yup.object({
-          questions: Yup.array().of(
-            Yup.string().required("Question is required")
-          ),
-          options: Yup.array().of(
-            Yup.array().of(Yup.string().required("Option is required"))
-          ),
-          answers: Yup.array().of(
-            Yup.array().of(Yup.string().required("Answer is required"))
-          ),
+        Yup.object().shape({
+          questions: Yup.array().of(Yup.string().required('Question is required')).required('At least one question is required').min(1, "Minimum one question is required"),
+          options: Yup.array().of(Yup.array().of(Yup.string().required('Option is required')).required("Options are required").min(1, 'At least one option per question is required')).required('Options are required').min(1, "Minimum one option is required"),
+          answers: Yup.array().of(Yup.array().of(Yup.string().required('Answer is required')).required("Answers are required").min(1, 'At least one answer per question is required')).required('Answers are required').min(1, "Minimum one answer is required"),
         })
       ),
     })
   ),
 });
 
-const CreateCourse = () => {
+const NewCourse = () => {
   const initialValues = {
-    title: "",
-    price: "",
-    level: "",
-    mode: "",
-    description: "",
-    image: "",
-    modules: [],
+    serial: '',
+    id: '',
+    title: '',
+    description: '',
+    link: '',
+    subtitle: '',
+    image: '',
+    price: 'Free',
+    poster: '',
+    rating: 3,
+    ratingCount: 3,
+    level: 'beginner',
+    mode: '100% Online',
+    duration: '',
+    modules: [
+      {
+        id: '',
+        subtopic: '',
+        description: '',
+        link: '',
+        img: '',
+        subtitle: '',
+        poster: '',
+        duration: 40,
+        assessments: [
+          {
+            questions: [''],
+            options: [['']],
+            answers: [['']],
+          },
+        ],
+      },
+    ],
   };
 
-  const handleSubmit = (values) => {
-    alert("Submitted Data: " + JSON.stringify(values, null, 2));
-    console.log("Submitted Data: ", values);
+  const handleSubmit = async (values) => {
+    console.log('Form values:', values);
+    try {
+      const response = await auth.post('/courses/new', values);
+      toast.success(response.data.message);
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
   };
+
+  const handleGoBack = () => {
+    window.history.back();
+  }
 
   return (
-    <Formik
-      initialValues={initialValues}
-      validationSchema={validationSchema}
-      onSubmit={handleSubmit}
+    <motion.div
+      initial={{ opacity: 0, x: '-20%' }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: '100%' }}
+      transition={{ delay: 0.1 }}
+      className="p-5 rounded-lg bg-gray-50 font-sans"
     >
-      {({ values, errors, touched }) => (
-        <Form>
-          <div>
-            <label>Course Title</label>
-            <Field name="title" />
-            {touched.title && errors.title && <div>{errors.title}</div>}
-          </div>
-
-          <div>
-            <label>Price</label>
-            <Field name="price" />
-            {touched.price && errors.price && <div>{errors.price}</div>}
-          </div>
-
-          <div>
-            <label>Level</label>
-            <Field as="select" name="level">
-              <option value="">Select Level</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-            </Field>
-            {touched.level && errors.level && <div>{errors.level}</div>}
-          </div>
-
-          <div>
-            <label>Mode</label>
-            <Field as="select" name="mode">
-              <option value="">Select Mode</option>
-              <option value="Online">Online</option>
-              <option value="Offline">Offline</option>
-            </Field>
-            {touched.mode && errors.mode && <div>{errors.mode}</div>}
-          </div>
-
-          <div>
-            <label>Description</label>
-            <Field as="textarea" name="description" />
-            {touched.description && errors.description && (
-              <div>{errors.description}</div>
-            )}
-          </div>
-
-          <div>
-            <label>Course Avatar</label>
-            <Field name="image" />
-            {touched.image && errors.image && <div>{errors.image}</div>}
-          </div>
-
-          <FieldArray name="modules">
-            {({ push, remove }) => (
+      <div className="action-nav flex justify-between items-center p-10">
+        <motion.article
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          transition={{ type: 'spring', stiffness: 60 }}
+          className="back flex items-center gap-4 text-2xl"
+        >
+          <MdArrowBack className="cursor-pointer" onClick={handleGoBack} />
+          <span className="font-medium">New Course Form</span>
+        </motion.article>
+      </div>
+      <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
+        {({ values, isSubmitting }) => (
+          <Form>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <h3>Modules</h3>
-                {values.modules.map((module, index) => (
-                  <div key={index}>
-                    <h4>Module {index + 1}</h4>
-
-                    <div>
-                      <label>Subtopic</label>
-                      <Field name={`modules[${index}].subtopic`} />
-                      {errors.modules?.[index]?.subtopic && (
-                        <div>{errors.modules[index].subtopic}</div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label>Module Description</label>
-                      <Field as="textarea" name={`modules[${index}].description`} />
-                      {errors.modules?.[index]?.description && (
-                        <div>{errors.modules[index].description}</div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label>Video Link</label>
-                      <Field name={`modules[${index}].link`} />
-                      {errors.modules?.[index]?.link && (
-                        <div>{errors.modules[index].link}</div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label>Module Avatar</label>
-                      <Field name={`modules[${index}].img`} />
-                      {errors.modules?.[index]?.img && (
-                        <div>{errors.modules[index].img}</div>
-                      )}
-                    </div>
-
-                    <FieldArray name={`modules[${index}].assessments`}>
-                      {({ push, remove }) => (
-                        <div>
-                          <h5>Assessments</h5>
-                          {module.assessments?.map((assessment, aIndex) => (
-                            <div key={aIndex}>
-                              <h6>Assessment {aIndex + 1}</h6>
-
-                              <FieldArray
-                                name={`modules[${index}].assessments[${aIndex}].questions`}
-                              >
-                                {({ push, remove }) => (
-                                  <div>
-                                    <h6>Questions</h6>
-                                    {assessment.questions?.map((_, qIndex) => (
-                                      <div key={qIndex}>
-                                        <Field
-                                          name={`modules[${index}].assessments[${aIndex}].questions[${qIndex}]`}
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() => remove(qIndex)}
-                                        >
-                                          Remove Question
-                                        </button>
-                                      </div>
-                                    ))}
-                                    <button type="button" onClick={() => push("")}>
-                                      Add Question
-                                    </button>
-                                  </div>
-                                )}
-                              </FieldArray>
-
-                              <FieldArray
-                                name={`modules[${index}].assessments[${aIndex}].options`}
-                              >
-                                {({ push, remove }) => (
-                                  <div>
-                                    <h6>Options</h6>
-                                    {assessment.options?.map((_, oIndex) => (
-                                      <div key={oIndex}>
-                                        <Field
-                                          name={`modules[${index}].assessments[${aIndex}].options[${oIndex}]`}
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() => remove(oIndex)}
-                                        >
-                                          Remove Option
-                                        </button>
-                                      </div>
-                                    ))}
-                                    <button type="button" onClick={() => push("")}>
-                                      Add Option
-                                    </button>
-                                  </div>
-                                )}
-                              </FieldArray>
-
-                              <FieldArray
-                                name={`modules[${index}].assessments[${aIndex}].answers`}
-                              >
-                                {({ push, remove }) => (
-                                  <div>
-                                    <h6>Answers</h6>
-                                    {assessment.answers?.map((_, ansIndex) => (
-                                      <div key={ansIndex}>
-                                        <Field
-                                          name={`modules[${index}].assessments[${aIndex}].answers[${ansIndex}]`}
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() => remove(ansIndex)}
-                                        >
-                                          Remove Answer
-                                        </button>
-                                      </div>
-                                    ))}
-                                    <button type="button" onClick={() => push("")}>
-                                      Add Answer
-                                    </button>
-                                  </div>
-                                )}
-                              </FieldArray>
-
-                              <button type="button" onClick={() => remove(aIndex)}>
-                                Remove Assessment
-                              </button>
-                            </div>
-                          ))}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              push({ questions: [], options: [], answers: [] })
-                            }
-                          >
-                            Add Assessment
-                          </button>
-                        </div>
-                      )}
-                    </FieldArray>
-
-                    <button type="button" onClick={() => remove(index)}>
-                      Remove Module
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() =>
-                    push({
-                      subtopic: "",
-                      description: "",
-                      link: "",
-                      img: "",
-                      assessments: [],
-                    })
-                  }
-                >
-                  Add Module
-                </button>
+                <label htmlFor="serial" className="block mb-1 text-gray-700">Serial:</label>
+                <Field type="text" id="serial" name="serial" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+                <ErrorMessage name="serial" component="div" className="text-red-500 mt-1" />
               </div>
-            )}
-          </FieldArray>
+              <div>
+                <label htmlFor="id" className="block mb-1 text-gray-700">ID:</label>
+                <Field type="text" id="id" name="id" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+                <ErrorMessage name="id" component="div" className="text-red-500 mt-1" />
+              </div>
+              <div>
+                <label htmlFor="title" className="block mb-1 text-gray-700">Title:</label>
+                <Field type="text" id="title" name="title" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+                <ErrorMessage name="title" component="div" className="text-red-500 mt-1" />
+              </div>
+              <div>
+                <label htmlFor="description" className="block mb-1 text-gray-700">Description:</label>
+                <Field as="textarea" id="description" name="description" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+                <ErrorMessage name="description" component="div" className="text-red-500 mt-1" />
+              </div>
+              <div>
+                <label htmlFor="link" className="block mb-1 text-gray-700">Link:</label>
+                <Field type="text" id="link" name="link" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+                <ErrorMessage name="link" component="div" className="text-red-500 mt-1" />
+              </div>
+              <div>
+                <label htmlFor="subtitle" className="block mb-1 text-gray-700">Subtitle:</label>
+                <Field type="text" id="subtitle" name="subtitle" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+              </div>
+              <div>
+                <label htmlFor="image" className="block mb-1 text-gray-700">Image URL:</label>
+                <Field type="text" id="image" name="image" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+                <ErrorMessage name="image" component="div" className="text-red-500 mt-1" />
+              </div>
 
-          <button type="submit">Create Course</button>
-        </Form>
-      )}
-    </Formik>
+              <div>
+                <label htmlFor="price" className="block mb-1 text-gray-700">Price:</label>
+                <Field type="text" id="price" name="price" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+              </div>
+              <div>
+                <label htmlFor="poster" className="block mb-1 text-gray-700">Poster URL:</label>
+                <Field type="text" id="poster" name="poster" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+              </div>
+              <div>
+                <label htmlFor="rating" className="block mb-1 text-gray-700">Rating:</label>
+                <Field type="number" id="rating" name="rating" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+                <ErrorMessage name="rating" component="div" className="text-red-500 mt-1" />
+              </div>
+              <div>
+                <label htmlFor="ratingCount" className="block mb-1 text-gray-700">Rating Count:</label>
+                <Field type="number" id="ratingCount" name="ratingCount" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+                <ErrorMessage name="ratingCount" component="div" className="text-red-500 mt-1" />
+              </div>
+              <div>
+                <label htmlFor="level" className="block mb-1 text-gray-700">Level:</label>
+                <Field as="select" id="level" name="level" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500">
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </Field>
+              </div>
+              <div>
+                <label htmlFor="mode" className="block mb-1 text-gray-700">Mode:</label>
+                <Field as="select" id="mode" name="mode" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500">
+                  <option value="100% Online">100% Online</option>
+                  <option value="Blended">Blended</option>
+                  <option value="Offline">Offline</option>
+                </Field>
+              </div>
+              <div>
+                <label htmlFor="duration" className="block mb-1 text-gray-700">Duration:</label>
+                <Field type="text" id="duration" name="duration" className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500" />
+                <ErrorMessage name="duration" component="div" className="text-red-500 mt-1" />
+              </div>
+            </div>
+
+            <FieldArray name="modules">
+              {({ push: pushModule, remove: removeModule }) => (
+                <div>
+                  {values.modules.map((module, moduleIndex) => (
+                    <div key={moduleIndex} className="mt-5 p-3 border border-gray-300 rounded-md">
+                      <h4 className="mb-3 text-lg text-gray-800">Module {moduleIndex + 1}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                          <label htmlFor={`modules.${moduleIndex}.id`} className="block mb-1 text-gray-700">ID:</label>
+                          <Field
+                            type="text"
+                            id={`modules.${moduleIndex}.id`}
+                            name={`modules.${moduleIndex}.id`}
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                          />
+                          <ErrorMessage name={`modules.${moduleIndex}.id`} component="div" className="text-red-500 mt-1" />
+                        </div>
+                        <div>
+                          <label htmlFor={`modules.${moduleIndex}.subtopic`} className="block mb-1 text-gray-700">Subtopic:</label>
+                          <Field
+                            type="text"
+                            id={`modules.${moduleIndex}.subtopic`}
+                            name={`modules.${moduleIndex}.subtopic`}
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                          />
+                          <ErrorMessage name={`modules.${moduleIndex}.subtopic`} component="div" className="text-red-500 mt-1" />
+                        </div>
+                        <div>
+                          <label htmlFor={`modules.${moduleIndex}.description`} className="block mb-1 text-gray-700">Description:</label>
+                          <Field
+                            as="textarea"
+                            id={`modules.${moduleIndex}.description`}
+                            name={`modules.${moduleIndex}.description`}
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                          />
+                          <ErrorMessage name={`modules.${moduleIndex}.description`} component="div" className="text-red-500 mt-1" />
+                        </div>
+                        <div>
+                          <label htmlFor={`modules.${moduleIndex}.link`} className="block mb-1 text-gray-700">Link:</label>
+                          <Field
+                            type="text"
+                            id={`modules.${moduleIndex}.link`}
+                            name={`modules.${moduleIndex}.link`}
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                          />
+                          <ErrorMessage name={`modules.${moduleIndex}.link`} component="div" className="text-red-500 mt-1" />
+                        </div>
+                        <div>
+                          <label htmlFor={`modules.${moduleIndex}.img`} className="block mb-1 text-gray-700">Image URL:</label>
+                          <Field
+                            type="text"
+                            id={`modules.${moduleIndex}.img`}
+                            name={`modules.${moduleIndex}.img`}
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                          />
+                          <ErrorMessage name={`modules.${moduleIndex}.img`} component="div" className="text-red-500 mt-1" />
+                        </div>
+                        <div>
+                          <label htmlFor={`modules.${moduleIndex}.subtitle`} className="block mb-1 text-gray-700">Subtitle:</label>
+                          <Field
+                            type="text"
+                            id={`modules.${moduleIndex}.subtitle`}
+                            name={`modules.${moduleIndex}.subtitle`}
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`modules.${moduleIndex}.poster`} className="block mb-1 text-gray-700">Poster URL:</label>
+                          <Field
+                            type="text"
+                            id={`modules.${moduleIndex}.poster`}
+                            name={`modules.${moduleIndex}.poster`}
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`modules.${moduleIndex}.duration`} className="block mb-1 text-gray-700">Duration (minutes):</label>
+                          <Field
+                            type="number"
+                            id={`modules.${moduleIndex}.duration`}
+                            name={`modules.${moduleIndex}.duration`}
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                          />
+                          <ErrorMessage name={`modules.${moduleIndex}.duration`} component="div" className="text-red-500 mt-1" />
+                        </div>
+                      </div>
+
+                      <FieldArray name={`modules.${moduleIndex}.assessments`}>
+                        {({ push: pushAssessment, remove: removeAssessment }) => (
+                          <div>
+                            {module.assessments.map((assessment, assessmentIndex) => (
+                              <div key={assessmentIndex} className="mt-3 p-3 border border-gray-200 rounded-md">
+                                <h5 className="mb-3 text-lg text-gray-800">Assessment {assessmentIndex + 1}</h5>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                  {/* Questions */}
+                                  <div>
+                                    <label htmlFor={`modules.${moduleIndex}.assessments.${assessmentIndex}.questions`} className="block mb-1 text-gray-700">
+                                      Questions:
+                                    </label>
+                                    <FieldArray name={`modules.${moduleIndex}.assessments.${assessmentIndex}.questions`}>
+                                      {({ push: pushQuestion, remove: removeQuestion }) => ( // Corrected!
+                                        <div>
+                                          {values.modules[moduleIndex].assessments[assessmentIndex].questions.map((question, questionIndex) => (
+                                            <div key={questionIndex} className="mb-2">
+                                              <Field
+                                                type="text"
+                                                name={`modules.${moduleIndex}.assessments.${assessmentIndex}.questions[${questionIndex}]`}
+                                                className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                                              />
+                                              <ErrorMessage name={`modules.${moduleIndex}.assessments.${assessmentIndex}.questions[${questionIndex}]`} component="div" className="text-red-500 mt-1" />
+                                              <button // Add a remove button!
+                                                type="button"
+                                                onClick={() => removeQuestion(questionIndex)}
+                                                className="ml-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300"
+                                              >
+                                                Remove
+                                              </button>
+                                            </div>
+                                          ))}
+                                          <button  // Add an add button!
+                                            type="button"
+                                            onClick={() => pushQuestion('')}
+                                            className="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring focus:ring-green-300"
+                                          >
+                                            Add Question
+                                          </button>
+                                        </div>
+                                      )}
+                                    </FieldArray>
+                                  </div>
+
+                                  {/* Options */}
+                                  <div>
+                                    <label htmlFor={`modules.${moduleIndex}.assessments.${assessmentIndex}.options`} className="block mb-1 text-gray-700">
+                                      Options:
+                                    </label>
+                                    <FieldArray name={`modules.${moduleIndex}.assessments.${assessmentIndex}.options`}>
+                                      {({ push: pushOptionArray }) => (
+                                        <div>
+                                          {values.modules[moduleIndex].assessments[assessmentIndex].options.map((optionArray, optionArrayIndex) => (
+                                            <div key={optionArrayIndex} className="mb-2">
+                                              <FieldArray name={`modules.${moduleIndex}.assessments.${assessmentIndex}.options[${optionArrayIndex}]`}>
+                                                {({ push: pushOption, remove: removeOption }) => (
+                                                  <div>
+                                                    {optionArray.map((option, optionIndex) => (
+                                                      <div key={optionIndex} className="mb-2 flex items-center">
+                                                        <Field
+                                                          type="text"
+                                                          name={`modules.${moduleIndex}.assessments.${assessmentIndex}.options[${optionArrayIndex}][${optionIndex}]`}
+                                                          className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                                                        />
+                                                        <button
+                                                          type="button"
+                                                          onClick={() => removeOption(optionIndex)}
+                                                          className="ml-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300"
+                                                        >
+                                                          Remove
+                                                        </button>
+                                                      </div>
+                                                    ))}
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => pushOption('')}
+                                                      className="mt-2 px-4 py-2 bg-ek-green text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring focus:ring-green-300"
+                                                    >
+                                                      Add Option
+                                                    </button>
+                                                  </div>
+                                                )}
+                                              </FieldArray>
+                                            </div>
+                                          ))}
+                                          <button
+                                            type="button"
+                                            onClick={() => pushOptionArray([''])}
+                                            className="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring focus:ring-green-300"
+                                          >
+                                            Add Option Array
+                                          </button>
+                                        </div>
+                                      )}
+                                    </FieldArray>
+                                  </div>
+
+                                  <div>
+                                    <label htmlFor={`modules.${moduleIndex}.assessments.${assessmentIndex}.answers`} className="block mb-1 text-gray-700">
+                                      Answers:
+                                    </label>
+                                    <FieldArray name={`modules.${moduleIndex}.assessments.${assessmentIndex}.answers`}>
+                                      {({ push: pushAnswerArray }) => (
+                                        <div>
+                                          {values.modules[moduleIndex].assessments[assessmentIndex].answers.map((answerArray, answerArrayIndex) => (
+                                            <div key={answerArrayIndex} className="mb-2">
+                                              <FieldArray name={`modules.${moduleIndex}.assessments.${assessmentIndex}.answers[${answerArrayIndex}]`}>
+                                                {({ push: pushAnswer, remove: removeAnswer }) => (
+                                                  <div>
+                                                    {answerArray.map((answer, answerIndex) => (
+                                                      <div key={answerIndex} className="mb-2 flex items-center">
+                                                        <Field
+                                                          type="text"
+                                                          name={`modules.${moduleIndex}.assessments.${assessmentIndex}.answers[${answerArrayIndex}][${answerIndex}]`}
+                                                          className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+                                                        />
+                                                        <button
+                                                          type="button"
+                                                          onClick={() => removeAnswer(answerIndex)}
+                                                          className="ml-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300"
+                                                        >
+                                                          Remove
+                                                        </button>
+                                                      </div>
+                                                    ))}
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => pushAnswer('')}
+                                                      className="mt-2 px-4 py-2 bg-ek-green text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring focus:ring-green-300"
+                                                    >
+                                                      Add Answer
+                                                    </button>
+                                                  </div>
+                                                )}
+                                              </FieldArray>
+                                            </div>
+                                          ))}
+                                          <button
+                                            type="button"
+                                            onClick={() => pushAnswerArray([''])}
+                                            className="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring focus:ring-green-300"
+                                          >
+                                            Add Answer Array
+                                          </button>
+                                        </div>
+                                      )}
+                                    </FieldArray>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeAssessment(assessmentIndex)}
+                                  className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300"
+                                >
+                                  Remove Assessment
+                                </button>
+                              </div>
+                            ))}
+
+                            <button
+                              type="button"
+                              onClick={() => pushAssessment({ questions: [''], options: [['']], answers: [['']] })}
+                              className="mt-4 px-4 py-2 bg-ek-green text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring focus:ring-green-300"
+                            >
+                              Add Assessment
+                            </button>
+                          </div>
+                        )}
+                      </FieldArray>
+
+                      <button
+                        type="button"
+                        onClick={() => removeModule(moduleIndex)}
+                        className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300"
+                      >
+                        Remove Module
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => pushModule({
+                      id: '',
+                      subtopic: '',
+                      description: '',
+                      link: '',
+                      img: '',
+                      subtitle: '',
+                      poster: '',
+                      duration: 40,
+                      assessments: [{ questions: [''], options: [['']], answers: [['']] }],
+                    })}
+                    className="mt-5 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring focus:ring-green-300"
+                  >
+                    Add Module
+                  </button>
+                </div>
+              )}
+            </FieldArray>
+
+            <button type="submit" disabled={isSubmitting} className="mt-5 px-6 py-3 bg-ek-green text-white rounded-md hover:bg-ek-light focus:outline-none focus:ring focus:ring-ek-light">
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </button>
+          </Form>
+        )}
+      </Formik>
+    </motion.div>
   );
 };
 
-export default CreateCourse;
+export default NewCourse;

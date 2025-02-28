@@ -153,7 +153,8 @@ const UpdateCourse = () => {
     setEditingQuestionIndex(null)
   };
 
-  const handleOpenAddAssessmentDialog = () => {
+  const handleOpenAddAssessmentDialog = (moduleIndex) => {
+    setEditingModuleIndex(moduleIndex);
     setIsAddAssessmentDialogOpen(true);
 };
 
@@ -438,14 +439,14 @@ assessmentsArrayHelpers.push({
                                       {formik?.values?.modules[editingModuleIndex]?.assessments?.map((assessment, assessmentIndex) => (
                                         <article key={assessmentIndex} className="flex flex-col gap-5">
                                           <div className="flex gap-5 item-center">
-                                            <label className="font-semibold">{`Assessment ${assessmentIndex + 1}`}</label>
+                                            <label className="font-semibold">Question</label>
                                             <input
                                               type="text"
                                               name={`modules.${editingModuleIndex}.assessments.${assessmentIndex}.questions.0`}
                                               value={assessment.questions[0]}
                                               onChange={formik.handleChange}
                                               placeholder="Enter question"
-                                              className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green"
+                                              className="border border-gray-300 px-4 py-2 w-full rounded-md focus:outline-ek-green"
                                             />
                                           </div>
                                           <div className="flex gap-5 flex-col">
@@ -473,7 +474,7 @@ assessmentsArrayHelpers.push({
                                                   value={answer}
                                                   onChange={formik.handleChange}
                                                   placeholder="Enter answer"
-                                                  className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green" />
+                                                  className="border border-gray-300 px-4 py-2 w-full rounded-md focus:outline-ek-green" />
                                               </div>
                                             ))}
                                           </div>
@@ -488,7 +489,7 @@ assessmentsArrayHelpers.push({
                               )}
                             </DialogContent>
                             <DialogActions>
-                              <Button onClick={handleCloseAddAssessmentDialog} color="primary">
+                              <Button onClick={handleEdit} color="primary">
                                 Close
                               </Button>
                             </DialogActions>
@@ -522,7 +523,7 @@ assessmentsArrayHelpers.push({
                         {formik?.values?.modules[editingModuleIndex]?.assessments[editingAssessmentIndex]?.questions?.map((question, questionIndex) => (
                           questionIndex === editingQuestionIndex ?
                             <article key={questionIndex} className="flex flex-col gap-5">
-                              <div className="flex gap-5 item-center">
+                              <div className="flex gap-5">
                                 <label className="font-semibold">{`Question ${questionIndex + 1}`}</label>
                                 <input
                                   type="text"
@@ -530,7 +531,7 @@ assessmentsArrayHelpers.push({
                                   value={question}
                                   onChange={formik.handleChange}
                                   placeholder="Enter question"
-                                  className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green"
+                                  className="border border-gray-300 px-4 py-2 w-full lg:max-w-[500px] rounded-md focus:outline-ek-green"
                                 />
                               </div>
                               <div className="flex gap-5 flex-col">
@@ -543,12 +544,12 @@ assessmentsArrayHelpers.push({
                                       value={option}
                                       onChange={formik.handleChange}
                                       placeholder="Enter option"
-                                      className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green"
+                                      className="border border-gray-300 px-4 py-2 w-full lg:max-w-[500px] rounded-md focus:outline-ek-green"
                                     />
                                   </div>
                                 ))}
                               </div>
-                              <div className="flex gap-5 items-center">
+                              <div className="flex gap-5">
                                 <label className="font-semibold">Answers:</label>
                                 {formik.values?.modules[editingModuleIndex]?.assessments[editingAssessmentIndex]?.answers[questionIndex]?.map((answer, answerIndex) => (
                                   <div key={answerIndex} className="flex gap-5">
@@ -558,10 +559,13 @@ assessmentsArrayHelpers.push({
                                       value={answer}
                                       onChange={formik.handleChange}
                                       placeholder="Enter answer"
-                                      className="border border-gray-300 px-4 py-2 rounded-md focus:outline-ek-green" />
+                                      className="border border-gray-300 px-4 py-2 w-full lg:max-w-[500px] rounded-md focus:outline-ek-green" />
                                   </div>
                                 ))}
                               </div>
+                              <Button onClick={handleCloseEditDialog} color="primary">
+                                Save
+                              </Button>
                             </article>
                             : null
                         ))}
